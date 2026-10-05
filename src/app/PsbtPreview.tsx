@@ -16,7 +16,7 @@ export function PsbtPreview({
   profile,
   evidence,
   quiet,
-  locale = "hi-IN",
+  locale = "en-IN",
   onRead,
 }: {
   bytes: Uint8Array;

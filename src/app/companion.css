@@ -304,6 +304,31 @@ select {
   border: 1px solid #bdc8ad;
   border-radius: 2px;
 }
+.conversation-settings {
+  margin-block: 18px;
+  padding: 14px;
+  border: 1px solid var(--line, #bdc8ad);
+}
+.conversation-settings summary {
+  cursor: pointer;
+  min-height: 44px;
+  font-weight: 600;
+}
+.conversation-settings > label {
+  margin-top: 14px;
+}
+.conversation-settings select {
+  width: 100%;
+  min-height: 44px;
+}
+.conversation-history {
+  max-height: 32rem;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.conversation-history .conversation-answer {
+  margin-block: 12px;
+}
 .intent-facts dt {
   font-size: 12px;
 }

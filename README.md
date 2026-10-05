@@ -4,9 +4,9 @@ A local, memory-only **testnet payment-review prototype**. Say or type a Hindi, 
 
 ## BOSS Battle: Machine Money
 
-Awaaz targets **Machine Money** as an AI-assisted Bitcoin review companion. Its contribution is machine intelligence helping people understand Bitcoin transactions: optional Gemini maps natural-language questions to supported review topics, while the local engine computes every financial answer and verdict. AI cannot confirm intent, change amounts, authorize a payment or sign. This is a human-facing assistant, not an autonomous payment agent.
+Awaaz targets **Machine Money** as an AI-assisted Bitcoin review companion. Optional OpenAI understands compound questions and conversational follow-ups; Gemini remains a single-question fallback. The local engine supplies financial facts and verdicts, while opt-in public mempool estimates support fee comparisons and confirmation-priority estimates. AI cannot confirm intent, change amounts, authorize a payment or sign.
 
-Recognized questions and suggested prompts stay local. When a question is not understood locally, separate opt-in consent allows Gemini to interpret its wording; unsupported topics are declined and provider failure falls back to the local response. Hindi/English answers and optional browser narration use the same checked facts. Gemini requires the configured local server; a static site retains local review and question answering.
+Suggested prompts and locally recognized safety questions stay local. Separate consent allows OpenAI to interpret other questions using the previous question and topic labels; unsupported topics are declined and provider failure falls back to local understanding. Hindi/English answers and optional narration use local file facts. No transaction is attached to AI or mempool requests. AI requires a configured backend; a static site retains local review and question answering.
 
 Track rationale and ready-to-use submission text: [BOSS Battle submission](docs/boss-battle-submission.md). [Bitshala track overview](https://luma.com/bitshala-bossbattle).
 
@@ -21,14 +21,14 @@ React/TypeScript + Vite, pinned bitcoinjs-lib 7.0.1, Framer Motion, Lucide icons
 
 Native links support deep links, new tabs and browser history. Navigating within the site preserves unchanged completed reviews, but cancels pending decoding/verification/audio. An interrupted review can be retried; edits invalidate the dashboard verdict. Reload/reset clears session data. The guided demo starts a clearly labeled fresh synthetic session (replacing existing desk inputs), with demo addresses, fee policy and a tampered fixture. It never confirms or verifies for the user.
 
-**No authentication or credentials are needed.** There are no accounts, server-side storage or wallet connections. Voice requires explicit consent and optional browser microphone permission. Public fee estimates remain opt-in and need no API key. Site explanation pages support English/Hindi; review language is an explicit control because changing it invalidates confirmed intent.
+**No account or credentials are needed for local review.** There are no accounts, server-side review storage or wallet connections. Optional AI needs a server API credential. Voice requires explicit consent and optional browser microphone permission. Public fee estimates remain opt-in and need no API key. Site explanation pages support English/Hindi; review language is an explicit control because changing it invalidates confirmed intent.
 
 ## Grant-companion additions
 
 - Optional payment purpose, familiarity and independent-channel check. Urgency/new-recipient prompts are transparent rules, **not AI fraud detection**. They never change the deterministic verdict.
-- Ask or speak supported questions about the current review: recipient, exact payment, total debit, fee, change, unusual details and limits. Hindi/English text and optional playback share the same facts. Unsupported questions abstain; no cloud LLM.
+- Ask or speak about the readable file or current review: payments, fees, confirmation estimates, change, unusual details and limits. Optional OpenAI understands compound questions and follow-ups. Financial answers remain local; unsupported questions abstain.
 - Decode payment-request or single-frame Base64 PSBT QR images locally (PNG/JPEG/WebP, 5 MB). Request labels/messages remain untrusted; addresses require a separate review before saving. No camera or URI fetching; animated UR/BBQR and BIP353/DNSSEC resolution are not implemented.
-- Explicitly request public testnet3 fee estimates from mempool.space, with source/time/five-minute freshness and an eight-second timeout. No transaction, address, transcript or purpose is sent. Provider failure does not affect verification. PSBT chain origin remains unknown; estimates are **not** an exact unsigned transaction fee rate.
+- Explicitly request public testnet3 fee estimates from mempool.space, with source/time/five-minute freshness and an eight-second timeout. No transaction, address, transcript or purpose is sent. Complete supported P2WPKH evidence permits an estimated signed size and fee rate; actual signature sizes are not yet known. PSBT chain origin remains unknown. Confirmation brackets are heuristics, not settlement guarantees. Network context never changes the verification verdict.
 - [Experimental reusable ESM SDK](docs/sdk.md): pure engine exports and TypeScript declarations, no UI, wallet or network adapters.
 
 No local Sparrow wallet, app or configuration is accessed for these changes. Public testnet evidence, synthetic fixtures and the SDK smoke test provide wallet-independent demo facilities, not proof of external-wallet interoperability.
@@ -56,7 +56,13 @@ Speech is optional and experimental. Recognition may use a browser provider, not
 
 **Hear this step** reads its visible guidance; **Sound off** cancels speech, disables microphone consent and automatic/read-report playback. The pictorial receipt separates the intended recipient, other payments, fee, total leaving and configured change. Fees with missing input evidence are Unknown, not verified claims. Warnings use text and symbols, not colour or hearing alone. Deaf users who also cannot read still need validated sign-language guidance and target-user testing; the app does not claim universal accessibility.
 
-No cloud agent is required for this demo. Optional Gemini question understanding is available after a review: enable **Let Gemini help when my wording isn’t understood locally**, then type or speak a question. Locally recognized and suggested questions stay local. Only an unrecognized question's text and language go through the local server to Google; Gemini returns a validated category, not a financial answer. Awaaz generates the answer from checked local facts and uses the existing browser voice for narration. Unsupported topics are declined. Provider failure falls back to the local router; reset/navigation/edit/consent withdrawal cancel pending replies. This is not Gemini Live or continuous cloud audio. [Voice architecture and limits](docs/voice-api-options.md).
+## Conversational transaction assistant
+
+Import a readable unsigned PSBT and ask **What am I signing?**, **Is this fee too high?**, **How long will it take to confirm?**, or **Can I pay less if I wait?** In **Conversation and network settings**, choose **OpenAI** and allow question understanding. It receives the current question, previous question, topic labels and language, never attached transaction facts. Awaaz builds financial answers locally. Suggested prompts stay local. Enable public mempool estimates separately for fee comparisons and timing; no mempool API key is required. Explanation does not confirm payment intent or approve signing.
+
+Set server-only `OPENAI_API_KEY` in `.env.local` (see `.env.example`), with optional `OPENAI_CONVERSATION_MODEL` (default `gpt-4.1-mini`), then restart Vite. Never expose the key through a `VITE_*` variable or browser input. Local and Vercel endpoints are included. No live OpenAI call or validation was run for this update. [Customer flow and limits](docs/conversational-review.md).
+
+Gemini remains a single-question fallback for wording the local router cannot understand. Only that question and language go to Google. [Voice architecture and limits](docs/voice-api-options.md).
 
 For local Gemini access, copy `.env.example` to `.env.local` and set server-only `GEMINI_API_KEY` to a restricted Google AI Studio credential. Restart Vite if necessary. Never use a `VITE_*` key or commit environment files; rotate any key pasted into chat. Dev and preview provide a loopback-only, same-origin endpoint with request-size, concurrency, rate and timeout limits. A static deployment has no Gemini backend, and the Vite middleware must not be treated as a public production server. Google account/model quota and data-use terms apply; availability and a free tier are not guaranteed.
 
@@ -67,6 +73,7 @@ For local Gemini access, copy `.env.example` to `.env.local` and set server-only
 - `api/ai/intent`: understands a free-form instruction (contact and exact amount), which the exact parser then re-checks.
 - `api/ai/review`: the AI situation check. It returns go / pause / block plus an explanation. The AI can only make the final verdict stricter, and its text is shown only if it passes the Number Lock.
 - `api/ai/transcribe` and `api/ai/speak`: OpenAI speech-to-text and text-to-speech.
+- `api/openai/conversation`: maps a review question to local answer topics; Awaaz builds the answer itself from the verified facts.
 - `api/gemini/question`: the optional legacy question classifier.
 
 Set these in Vercel → Project → Settings → Environment Variables (Production and Preview), then redeploy:
@@ -78,6 +85,7 @@ Set these in Vercel → Project → Settings → Environment Variables (Producti
 | `OPENAI_TRANSCRIBE_MODEL` | no | `gpt-4o-mini-transcribe` |
 | `OPENAI_TTS_MODEL` | no | `gpt-4o-mini-tts` |
 | `OPENAI_TTS_VOICE` | no | `marin` |
+| `OPENAI_CONVERSATION_MODEL` | no | `gpt-4.1-mini` |
 | `GEMINI_API_KEY` | no | — |
 
 Locally, put the same variables in `.env.local`; never use a `VITE_` prefix. Rate limits apply per function instance, so also set a monthly usage limit in the OpenAI dashboard. Without a key, Awaaz falls back to the code-only check and browser speech. Add `?lockdemo=1` to the review URL to see the Number Lock reject a planted wrong number.
@@ -92,7 +100,7 @@ Locally, put the same variables in `.env.local`; never use a `VITE_` prefix. Rat
 - MATCH means consistency with the confirmed intent, complete supported facts and fee cap. It is **not safe-to-sign certification**. MISMATCH and INCOMPLETE both say DO NOT SIGN.
 - PSBTs do not reliably encode their chain origin. The app uses a fixed testnet address context, not mainnet detection. Hash-linked evidence does not prove ownership, chain inclusion, unspentness or spendability.
 - Full SHA-256 bindings tie the review to transaction bytes, evidence, intent and profile. Local receipts are unsigned consistency records, not tamper-proof attestations or signer enforcement.
-- No Bitcoin private keys, signing, broadcasting, wallet connections, accounts, analytics, persistent review storage or automatic transaction uploads. Optional browser speech, public fee requests and consented Gemini question understanding may contact external services. The Gemini API credential stays on the local server; financial verification is never delegated to it. No production-security or world-first claim.
+- No Bitcoin private keys, signing, broadcasting, wallet connections, accounts, analytics, persistent review storage or automatic transaction uploads. Optional browser speech, public fee requests and consented OpenAI/Gemini question understanding may contact external services. API credentials stay on the server; financial verification is never delegated to AI. No production-security or world-first claim.
 
 ## Architecture
 
@@ -102,7 +110,7 @@ The route shell receives only intent/transaction readiness booleans and the curr
 
 `draft → explicit confirmation → PSBT + evidence → bounded deterministic review → MATCH / MISMATCH / INCOMPLETE`
 
-Review data stays in browser memory. Only an explicitly opted-in question is sent to Google; don't include private information in it. The local Gemini server doesn't log or store questions; provider retention and data use follow Google's terms. Self-hosted fonts avoid third-party font requests. Typed local review works without microphone/provider access after the app has loaded; this is not an installed offline PWA.
+Review data stays in browser memory. Opted-in Gemini requests include question text and language; OpenAI requests additionally include the previous question and topic labels. Do not include private information in questions. AI endpoints do not log or store questions; provider retention follows their policies. Self-hosted fonts avoid third-party font requests. Typed local review works without microphone/provider access after the app loads; this is not an installed offline PWA.
 
 ## Verify
 
