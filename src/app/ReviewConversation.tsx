@@ -85,8 +85,9 @@ export function ReviewConversation({
     setAsked(value);
     const local = answerReviewQuestion(value, result, context, locale);
     setSource("local");
-    // Local safety-limit answers cannot be redirected by an LLM.
-    if (!useCloud || !cloudConsent || local.kind === "limits") {
+    // Use AI only for phrasing the local router cannot understand.
+    // Recognized questions, including safety limits, stay local.
+    if (!useCloud || !cloudConsent || local.kind !== "unsupported") {
       setAnswer(local);
       return;
     }
@@ -179,8 +180,8 @@ export function ReviewConversation({
       </h3>
       <p>
         {t(
-          "You don’t need to read a transaction like an engineer. Ask about the details that matter to you.",
-          "इंजीनियर की तरह लेन-देन पढ़ना ज़रूरी नहीं। अपने लिए महत्वपूर्ण विवरण पूछें।",
+          "Ask about your Bitcoin payment in Hindi, English or Hinglish. Recognized questions stay local; optional AI helps understand other wording. Every financial answer comes from this review.",
+          "बिटकॉइन भुगतान के बारे में हिंदी, अंग्रेज़ी या हिंग्लिश में पूछें। समझे गए प्रश्न स्थानीय रहते हैं; वैकल्पिक AI दूसरी शब्दावली समझने में मदद करता है। हर वित्तीय उत्तर इसी जाँच से आता है।",
         )}
       </p>
       <div className="question-suggestions">
@@ -211,15 +212,15 @@ export function ReviewConversation({
           />
           <span>
             {t(
-              "Use Gemini to understand my questions",
-              "मेरे प्रश्न समझने के लिए Gemini इस्तेमाल करें",
+              "Let Gemini help when my wording isn’t understood locally",
+              "स्थानीय रूप से प्रश्न न समझ आने पर Gemini की मदद लें",
             )}
           </span>
         </label>
         <p id="gemini-disclosure">
           {t(
-            "Optional: your question text is sent to Google. Do not include addresses, seed words or other private information. We do not send the PSBT, payment transcript or review facts. Google’s free-tier terms may allow product improvement using this text. Answers and numbers still come from this local review; speech uses your browser voice.",
-            "वैकल्पिक: आपके प्रश्न का टेक्स्ट Google को भेजा जाएगा। पता, सीड शब्द या निजी जानकारी न लिखें। PSBT, भुगतान निर्देश और जाँच के तथ्य नहीं भेजे जाते। Google की निःशुल्क सेवा की शर्तों के तहत इस टेक्स्ट से उत्पाद सुधार हो सकता है। उत्तर और राशि इसी स्थानीय जाँच से आते हैं; आवाज़ ब्राउज़र की है।",
+            "Optional: only questions the local router cannot understand are sent to Google as text, with the selected language. Do not include addresses, seed words or other private information. The PSBT, payment transcript and review facts are not attached. Google’s free-tier terms may allow product improvement using this text. Gemini selects a supported topic; Awaaz supplies the checked facts. Requires a configured local Gemini server; browser voice handles playback.",
+            "वैकल्पिक: केवल स्थानीय रूप से न समझे गए प्रश्न का टेक्स्ट और चुनी भाषा Google को भेजे जाते हैं। पता, सीड शब्द या निजी जानकारी न लिखें। PSBT, भुगतान निर्देश और जाँच के तथ्य साथ नहीं भेजे जाते। Google की निःशुल्क सेवा की शर्तों के तहत इस टेक्स्ट से उत्पाद सुधार हो सकता है। Gemini समर्थित विषय चुनता है; आवाज़ जाँचे तथ्य देता है। कॉन्फ़िगर किया स्थानीय Gemini सर्वर आवश्यक है; ब्राउज़र की आवाज़ उत्तर पढ़ती है।",
           )}{" "}
           <a
             href="https://ai.google.dev/gemini-api/terms"
@@ -322,7 +323,12 @@ export function ReviewConversation({
         >
           <span className="answer-question">{asked}</span>
           <span className="answer-source">
-            {source === "gemini"
+            {source === "gemini" && answer.kind === "unsupported"
+              ? t(
+                  "Gemini could not map this question to a supported review topic",
+                  "Gemini इस प्रश्न को समर्थित जाँच विषय से नहीं जोड़ सका",
+                )
+              : source === "gemini"
               ? t(
                   "Gemini understood the question · answer from checked local facts",
                   "Gemini ने प्रश्न समझा · उत्तर जाँचे स्थानीय तथ्यों से",
@@ -353,8 +359,8 @@ export function ReviewConversation({
       )}
       <p className="context-boundary">
         {t(
-          "Checked facts and honest limits. Gemini can interpret an opted-in question, never change the verdict or approve signing. Suggested questions always stay local. Not a general-purpose AI chat.",
-          "जाँचे तथ्य और स्पष्ट सीमाएँ। सहमति पर Gemini प्रश्न समझ सकता है, निर्णय बदल या साइन की अनुमति नहीं दे सकता। सुझाए प्रश्न स्थानीय हैं। सामान्य AI चैट नहीं।",
+          "AI understands wording; the local Bitcoin engine checks the payment. Gemini cannot change the verdict, confirm intent or approve signing. Suggested and locally recognized questions stay local even with Gemini enabled. Unsupported topics are declined.",
+          "AI शब्दावली समझता है; स्थानीय बिटकॉइन इंजन भुगतान जाँचता है। Gemini निर्णय बदल, निर्देश की पुष्टि या साइन की अनुमति नहीं दे सकता। Gemini चालू होने पर भी सुझाए और स्थानीय रूप से समझे गए प्रश्न स्थानीय रहते हैं। असमर्थित विषयों पर उत्तर नहीं दिए जाते।",
         )}
       </p>
     </section>

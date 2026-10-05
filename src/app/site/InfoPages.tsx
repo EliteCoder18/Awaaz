@@ -78,8 +78,8 @@ export function InfoPage({
                 icon: MessageSquareText,
                 title: t("Read, listen, ask", "पढ़ें, सुनें, पूछें"),
                 body: t(
-                  "Check recipient, payment, fee, debit and change. Ask a supported question in Hindi or English. Unknown questions abstain. Your wallet still owns the signing step.",
-                  "प्राप्तकर्ता, राशि, शुल्क, कुल बाहरी भुगतान और चेंज देखें। हिंदी या अंग्रेज़ी में समर्थित प्रश्न पूछें। साइन करना आपके वॉलेट में ही रहता है।",
+                  "Check recipient, payment, fee, debit and change. Ask in Hindi, English or Hinglish. Optional Gemini interprets wording the local router cannot understand; answers use checked local facts. Unsupported topics are declined. Signing stays in your wallet.",
+                  "प्राप्तकर्ता, राशि, शुल्क, कुल बाहरी भुगतान और चेंज देखें। हिंदी, अंग्रेज़ी या हिंग्लिश में पूछें। वैकल्पिक Gemini स्थानीय रूप से न समझी शब्दावली समझता है; उत्तर जाँचे स्थानीय तथ्यों से आते हैं। असमर्थित विषयों पर उत्तर नहीं मिलते। साइन करना वॉलेट में रहता है।",
                 ),
               },
             ].map((step, i) => (
@@ -235,6 +235,15 @@ export function InfoPage({
           </motion.section>
         </>
       )}
+      <motion.section className="info-privacy" {...reveal()}>
+        <h2>{t("AI for understanding. Exact rules for Bitcoin.", "समझने के लिए AI। बिटकॉइन के लिए सटीक नियम।")}</h2>
+        <p>
+          {t(
+            "Gemini can select one supported question topic: recipient, amount, fee, total debit, change, unusual details or review limits. It receives only an opted-in question and language when local understanding fails. It never receives the transaction as context or generates the financial answer. The verifier computes the facts and verdict; browser voice reads the answer. A configured local server is required for Gemini, while the local review works without it.",
+            "Gemini प्रश्न का एक समर्थित विषय चुन सकता है: प्राप्तकर्ता, राशि, शुल्क, कुल भुगतान, चेंज, असामान्य विवरण या जाँच की सीमाएँ। स्थानीय रूप से प्रश्न न समझ आने पर ही सहमति वाला प्रश्न और भाषा भेजे जाते हैं। संदर्भ में लेन-देन नहीं भेजा जाता और वित्तीय उत्तर AI नहीं बनाता। जाँच इंजन तथ्य और निर्णय निकालता है; ब्राउज़र की आवाज़ उत्तर पढ़ती है। Gemini के लिए कॉन्फ़िगर किया स्थानीय सर्वर चाहिए; स्थानीय जाँच बिना इसके काम करती है।",
+          )}
+        </p>
+      </motion.section>
       <div className="info-next">
         <p>
           {t(

@@ -107,8 +107,8 @@ export function Dashboard({
           </h1>
           <p>
             {t(
-              "Who gets the Bitcoin? How much? What is the extra fee? See the answers or hear them before signing.",
-              "बिटकॉइन किसे मिलेगा? कितना? अतिरिक्त शुल्क क्या है? साइन करने से पहले जवाब देखें या सुनें।",
+              "A Bitcoin review companion with optional AI question understanding. Ask in Hindi, English or Hinglish; read or hear answers grounded in your unsigned transaction before signing.",
+              "वैकल्पिक AI प्रश्न समझ के साथ बिटकॉइन जाँच साथी। हिंदी, अंग्रेज़ी या हिंग्लिश में पूछें; साइन करने से पहले बिना साइन लेन-देन पर आधारित उत्तर पढ़ें या सुनें।",
             )}
           </p>
         </div>
@@ -138,8 +138,8 @@ export function Dashboard({
           </h2>
           <p>
             {t(
-              "Show the unsigned PSBT from your wallet. See who gets the Bitcoin, how much, and the fee—in plain language. Then check it against the payment you intended.",
-              "वॉलेट की बिना साइन वाली PSBT दिखाएँ। किसे कितना बिटकॉइन जाएगा और शुल्क कितना है—आसान हिंदी में समझें। फिर अपने भुगतान से मेल जाँचें।",
+              "Bring the unsigned PSBT from your wallet. Check the recipient, exact sats and fee against your confirmed intent, then ask about the result. Gemini can help interpret unfamiliar wording; the local engine supplies the amounts and verdict.",
+              "वॉलेट की बिना साइन वाली PSBT लाएँ। प्राप्तकर्ता, सटीक सैट्स और शुल्क का पुष्टि किए निर्देश से मेल जाँचें, फिर परिणाम के बारे में पूछें। Gemini नई शब्दावली समझने में मदद कर सकता है; राशि और निर्णय स्थानीय इंजन देता है।",
             )}
           </p>
           <div className="feature-actions">
