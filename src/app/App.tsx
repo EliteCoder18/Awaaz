@@ -14,18 +14,26 @@ import {
   ShieldCheck,
   Square,
   Upload,
+  Download,
   Volume2,
   Ear,
 } from "lucide-react";
 import { recognizeSpeech } from "../adapters/speechRecognizer";
 import { speakLocalizedReport } from "../adapters/speechSynthesis";
 import { runVerification } from "../adapters/verificationClient";
+import { fetchPreviousTransactions } from "../adapters/prevTxFetch";
+import { parsePsbt } from "../core/psbtParser";
+import { missingPrevoutTxids } from "../core/prevoutEvidence";
 import { fromBase64, fromHex, toBase64, toHex } from "../core/encoding";
 import { interpretIntent } from "../core/intentInterpreter";
 import { confirmIntent } from "../core/intentConfirmation";
 import { presentReport } from "../core/reportPresenter";
 import type { Locale, LocalizedReport, ReviewSnapshot } from "../core/types";
-import { buildDemoPsbt, type DemoScenario } from "../demo/fixtures";
+import {
+  buildDemoPsbt,
+  demoPreviousTransaction,
+  type DemoScenario,
+} from "../demo/fixtures";
 import {
   initialWorkflowState,
   workflowReducer,
@@ -213,6 +221,108 @@ export function App({
   function fail(message: string) {
     dispatch({ type: "SET_ERROR", error: message });
   }
+  const missingTxids = useMemo(() => {
+    if (!state.psbtBytes) return [];
+    try {
+      return missingPrevoutTxids(
+        state.result?.facts ??
+          parsePsbt(state.psbtBytes, state.profile, state.evidence),
+      );
+    } catch {
+      return [];
+    }
+  }, [state.psbtBytes, state.profile, state.evidence, state.result]);
+  const [proofStatus, setProofStatus] = useState("");
+  const verifyAfterProof = useRef(false);
+  async function fetchMissingProof() {
+    if (!missingTxids.length || fileBusy) return;
+    cancel();
+    const controller = new AbortController();
+    operation.current = controller;
+    setFileBusy(true);
+    setProofStatus(t("Fetching proof…", "प्रमाण लाया जा रहा है…"));
+    try {
+      const fetched = await fetchPreviousTransactions(
+        missingTxids,
+        controller.signal,
+        demoPreviousTransaction,
+      );
+      if (controller.signal.aborted) return;
+      const demo = fetched.some((f) => f.source === "demo");
+      setProofStatus(
+        t(
+          `Fetched ${fetched.length} of ${missingTxids.length}${demo ? " from the built-in demo source" : " from mempool.space"}. Each one is checked against its transaction ID on this device.`,
+          `${missingTxids.length} में से ${fetched.length} प्रमाण ${demo ? "डेमो स्रोत" : "mempool.space"} से मिले। हर एक की जाँच इसी डिवाइस पर लेन-देन ID से की जाती है।`,
+        ),
+      );
+      operation.current = undefined;
+      setFileBusy(false);
+      verifyAfterProof.current = true;
+      dispatch({
+        type: "SET_EVIDENCE",
+        evidence: {
+          previousTransactions: [
+            ...state.evidence.previousTransactions,
+            ...fetched.map((f) => f.bytes),
+          ],
+        },
+      });
+    } catch (e) {
+      if (!controller.signal.aborted)
+        setProofStatus(
+          t(
+            "Proof could not be fetched. You can still add the previous transaction file manually.",
+            "प्रमाण नहीं मिला। आप पिछले लेन-देन की फ़ाइल खुद जोड़ सकते हैं।",
+          ) + (e instanceof Error ? " (" + e.message + ")" : ""),
+        );
+    } finally {
+      if (operation.current === controller) {
+        operation.current = undefined;
+        setFileBusy(false);
+      }
+    }
+  }
+  useEffect(() => {
+    if (!verifyAfterProof.current || fileBusy) return;
+    verifyAfterProof.current = false;
+    if (state.intent && state.psbtBytes && state.profileReviewed) void verify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.evidence, fileBusy]);
+  useEffect(() => setProofStatus(""), [state.psbtBytes, state.sessionId]);
+  const missingProof = (missingTxids.length > 0 || proofStatus) && (
+    <div className="missing-proof" role="status">
+      {missingTxids.length > 0 && (
+        <>
+          <p>
+            {t(
+              `Awaaz needs proof of how much ${missingTxids.length === 1 ? "the coin being spent is" : "the coins being spent are"} worth before it can check the fee.`,
+              "फीस जाँचने से पहले Awaaz को खर्च हो रहे सिक्कों की कीमत का प्रमाण चाहिए।",
+            )}
+          </p>
+          <button
+            className="button secondary small"
+            type="button"
+            onClick={() => void fetchMissingProof()}
+            disabled={fileBusy}
+          >
+            {fileBusy ? (
+              <LoaderCircle className="spin" size={16} aria-hidden="true" />
+            ) : (
+              <Download size={16} aria-hidden="true" />
+            )}
+            {t("Fetch missing proof", "छूटा प्रमाण लाएँ")}
+          </button>
+          <p className="fine-print">
+            {t(
+              "Sends only the transaction ID to mempool.space (public testnet). Nothing about you, the amount or the recipient is sent.",
+              "केवल लेन-देन ID mempool.space (सार्वजनिक testnet) को भेजी जाती है। आपकी, राशि या प्राप्तकर्ता की कोई जानकारी नहीं जाती।",
+            )}
+          </p>
+        </>
+      )}
+      {proofStatus && <p className="muted">{proofStatus}</p>}
+    </div>
+  );
   function read(report: LocalizedReport, locale = state.locale) {
     if (quiet) {
       setAudioStatus(
@@ -1153,6 +1263,7 @@ export function App({
                         )
                       }
                     />
+                    {missingProof}
                     <a
                       href="#intent"
                       className="psbt-continue"
@@ -1290,6 +1401,7 @@ export function App({
                       </span>
                     </summary>
                     <div>
+                      {missingProof}
                       <p className="muted">
                         {t(
                           "For each input, Awaaz needs the raw previous transaction linked to its transaction hash. If your PSBT already includes it, no extra file is needed.",
@@ -1515,6 +1627,7 @@ export function App({
                   onRead={() => localized && read(localized)}
                   onStop={stopAudio}
                 />
+                {state.result && missingProof}
               </div>
               {state.result && active && (
                 <ReviewConversation

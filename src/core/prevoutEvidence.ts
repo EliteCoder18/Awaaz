@@ -1,7 +1,23 @@
 import { Psbt, Transaction } from "bitcoinjs-lib";
 import { toHex } from "./encoding";
 import { validMoney } from "./verificationPolicy";
-import type { ParseWarning, PrevoutEvidence, ValidatedInput } from "./types";
+import type {
+  ParseWarning,
+  PrevoutEvidence,
+  TransactionFacts,
+  ValidatedInput,
+} from "./types";
+
+// Display-order txids of inputs whose previous transaction is not yet proven.
+export function missingPrevoutTxids(facts: TransactionFacts): string[] {
+  return [
+    ...new Set(
+      (facts.inputs ?? [])
+        .filter((input) => input.evidenceStatus !== "validated")
+        .map((input) => input.outpoint.split(":")[0]),
+    ),
+  ];
+}
 
 export function validatePrevouts(
   psbt: Psbt,
