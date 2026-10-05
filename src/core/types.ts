@@ -97,6 +97,8 @@ export interface TransactionFacts {
   version?: number;
   locktime?: number;
   replaceable?: boolean;
+  /** Conservative P2WPKH size estimate; final signatures determine actual vsize. */
+  estimatedSignedVsize?: number;
 }
 export type VerificationIssueCode =
   | "INTENT_AMBIGUOUS"

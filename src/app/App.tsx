@@ -22,6 +22,7 @@ import { speakLocalizedReport } from "../adapters/speechSynthesis";
 import { runVerification } from "../adapters/verificationClient";
 import { fromBase64, fromHex, toBase64, toHex } from "../core/encoding";
 import { interpretIntent } from "../core/intentInterpreter";
+import { parsePsbt } from "../core/psbtParser";
 import { confirmIntent } from "../core/intentConfirmation";
 import { presentReport } from "../core/reportPresenter";
 import type { Locale, LocalizedReport, ReviewSnapshot } from "../core/types";
@@ -37,7 +38,6 @@ import { TransactionReview } from "./TransactionReview";
 import { PaymentContextForm } from "./PaymentContextForm";
 import { QrImport } from "./QrImport";
 import { ReviewConversation } from "./ReviewConversation";
-import { NetworkContext } from "./NetworkContext";
 import { PsbtPreview } from "./PsbtPreview";
 import { ReviewGuide, type GuideStep } from "./ReviewGuide";
 import { AccessibleReview } from "./AccessibleReview";
@@ -143,6 +143,12 @@ export function App({
         : undefined,
     [state.result, state.locale],
   );
+  const conversationFacts = useMemo(() => {
+    if (state.result) return state.result.facts;
+    if (!state.psbtBytes) return undefined;
+    try { return parsePsbt(state.psbtBytes, state.profile, state.evidence); }
+    catch { return undefined; }
+  }, [state.result, state.psbtBytes, state.profile, state.evidence]);
   useEffect(() => {
     document.documentElement.lang = hi ? "hi" : "en";
     if (active) onLocaleChange?.(state.locale);
@@ -586,6 +592,20 @@ export function App({
         ".";
     read({ title: "", instruction: "", details: [], speech: text });
   }
+  const conversation = active && conversationFacts &&
+    (!simpleView || guidedStep === 3 || (psbtFirst && guidedStep === 2)) ? (
+      <ReviewConversation
+        key={state.sessionId + ":" + state.revision}
+        result={state.result}
+        facts={conversationFacts}
+        context={state.intent?.context ?? state.context}
+        locale={state.locale}
+        consent={consent}
+        interactionEpoch={interactionEpoch}
+        quiet={quiet}
+        onRead={read}
+      />
+    ) : null;
   return (
     <MotionConfig reducedMotion={accessible ? "always" : "user"}>
       <div
@@ -1166,6 +1186,7 @@ export function App({
                     </a>
                   </>
                 )}
+                {psbtFirst && !state.result && conversation}
                 <ImportControls
                   className={
                     psbtFirst && state.psbtBytes
@@ -1516,27 +1537,7 @@ export function App({
                   onStop={stopAudio}
                 />
               </div>
-              {state.result && active && (
-                <ReviewConversation
-                  key={state.revision}
-                  result={state.result}
-                  context={state.intent?.context ?? state.context}
-                  locale={state.locale}
-                  consent={consent && (!simpleView || guidedStep === 3)}
-                  interactionEpoch={interactionEpoch}
-                  quiet={quiet}
-                  onRead={read}
-                />
-              )}
-              <details open={!simpleView} className="network-disclosure">
-                <summary>
-                  {t("Network details (optional)", "नेटवर्क विवरण (वैकल्पिक)")}
-                </summary>
-                <NetworkContext
-                  key={"network-" + state.sessionId + state.locale + active}
-                  locale={state.locale}
-                />
-              </details>
+              {(!psbtFirst || state.result) && conversation}
               {!simpleView && state.error && (
                 <div className="error-banner" role="alert">
                   <Info size={19} aria-hidden="true" />

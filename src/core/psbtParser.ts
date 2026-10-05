@@ -1,4 +1,4 @@
-import { Psbt, address, networks } from "bitcoinjs-lib";
+import { Psbt, Transaction, address, networks } from "bitcoinjs-lib";
 import { fromBase64, toHex } from "./encoding";
 import { validatePrevouts } from "./prevoutEvidence";
 import { validMoney } from "./verificationPolicy";
@@ -232,6 +232,20 @@ export function parsePsbt(
       "INVALID_FEE",
       "Input and output totals produce an invalid fee.",
     );
+  let estimatedSignedVsize: number | undefined;
+  if (validated.inputs.every((i) => i.evidenceStatus === "validated" && /^0014[a-f0-9]{40}$/.test(i.scriptHex ?? ""))) {
+    const estimate = new Transaction();
+    estimate.version = psbt.version;
+    estimate.locktime = psbt.locktime;
+    psbt.txInputs.forEach((input, index) => {
+      estimate.addInput(input.hash, input.index, input.sequence);
+      // A maximum-length DER signature plus sighash byte and compressed pubkey.
+      // This estimates size only; it is not a real signature or signed transaction.
+      estimate.setWitness(index, [new Uint8Array(73), new Uint8Array(33)]);
+    });
+    psbt.txOutputs.forEach((output) => estimate.addOutput(output.script, output.value));
+    estimatedSignedVsize = estimate.virtualSize();
+  }
   return {
     networkContext: "testnet",
     outputs,
@@ -239,6 +253,7 @@ export function parsePsbt(
     inputTotalSats,
     outputTotalSats,
     feeSats,
+    estimatedSignedVsize,
     warnings,
     evidenceComplete: validated.inputs.every(
       (i) => i.evidenceStatus === "validated",

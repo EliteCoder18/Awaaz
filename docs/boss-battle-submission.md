@@ -18,30 +18,30 @@ An unsigned Bitcoin transaction is hard to understand if you do not read transac
 
 Awaaz is a testnet Bitcoin review companion. Users explicitly confirm a recipient, exact sats and maximum fee, then import an unsigned PSBT. A local engine checks the transaction against those instructions and presents MATCH, MISMATCH or INCOMPLETE with visible warnings and optional narration.
 
-Users can ask about recipients, amounts, fees, total debit, change, unusual details and review limits in Hindi, English or Hinglish. Recognized questions are answered locally. With separate consent and a configured local server, Gemini interprets unfamiliar wording into one supported question category. The model does not generate financial facts: answers come from the checked transaction, and unsupported questions are declined. The UI identifies when Gemini interpreted a question.
+Users can ask about a readable file: “What am I signing?”, “Is this fee high?” or “How long might confirmation take?” With separate consent, OpenAI understands compound Hindi, English or Hinglish questions and follow-ups such as “What if I can wait?” using the previous question and topic labels. Optional public mempool snapshots support fee comparisons, confirmation-priority brackets and potential slower-target savings. Financial facts come from the local file and explicit network estimates. Suggested prompts stay local, unsupported topics are declined, and the UI identifies the answer source. Gemini remains a single-question fallback.
 
 This is machine intelligence serving Bitcoin users. AI helps with language while exact Bitcoin accounting, intent confirmation and the signing decision remain outside model authority. No private keys, wallet connection, signing or broadcasting are involved.
 
 ## Challenges in the implementation
 
-The central design challenge is separating language understanding from financial authority. Gemini returns a category from a constrained schema; it cannot supply amounts or change a verdict. The local engine uses exact bigint accounting, explicit intent confirmation and script comparisons. Missing evidence and unsupported transaction semantics prevent a MATCH result.
+The central design challenge is separating language understanding from financial authority. OpenAI returns topics from a constrained schema; it cannot supply amounts or change a verdict. The local engine uses exact bigint accounting, explicit intent confirmation and script comparisons. Missing evidence and unsupported transaction semantics prevent a MATCH result. Signed size, fee rates and confirmation priority are labeled estimates because signatures and network conditions can change them.
 
 Another challenge is keeping explanations current as the user edits a payment. Pending speech, question requests and verification work are cancelled when the relevant session changes; stale responses must not become the explanation for a different transaction.
 
-Finally, accessibility and privacy require usable alternatives. Typed input, visible warnings, Hindi/English reports and optional audio share the same review facts. Gemini consent is separate from microphone consent, and questions understood locally are not sent to the model even when cloud assistance is enabled.
+Finally, accessibility and privacy require usable alternatives. Typed input, visible warnings, Hindi/English reports and optional audio share the same local facts. AI consent is separate from microphone and mempool consent. Transactions and financial facts are not attached to model requests; suggested prompts and locally recognized safety questions stay local. Other opted-in OpenAI questions include one-turn question/topic context for follow-ups.
 
 ## What to show the judges
 
 1. Confirm the synthetic 50,000-sat payment to Riya with a 2,000-sat fee cap.
 2. Review the tampered transaction and show the wrong recipient and tenfold amount discrepancy.
 3. Review the correct fixture: 50,000-sat payment, 1,000-sat fee, 51,000-sat external debit and 9,000-sat configured change.
-4. Ask a suggested question to show local answers. Opt into Gemini and ask a synthetic paraphrase such as “What portion is paid to miners?” Show the interpretation source if Gemini successfully maps it to the fee category.
+4. Ask a suggested question to show local answers. Opt into OpenAI and public mempool estimates, then ask “Is this expensive and when will it arrive?” followed by “What if I can wait?” Show the topic source and timestamped fee estimates if the configured services succeed.
 5. Ask about safety to show honest limits. Edit the payment to show the previous result is invalidated.
 
 See the [demo script](demo-script.md) for the full sequence and fallback behavior.
 
 ## Submission boundaries
 
-This is an experimental testnet PSBT v0 prototype with a limited supported input policy. MATCH means consistency with confirmed intent, not proof of identity, ownership, unspentness or safety. Gemini needs a configured local server and API credential; static hosting provides only the local path. Browser recognition may use an external provider, and narration needs a matching installed voice. This is not Gemini Live, continuous cloud audio, an autonomous payment system, an audited mainnet wallet or a privacy protocol.
+This is an experimental testnet PSBT v0 prototype with a limited supported input policy. MATCH means consistency with confirmed intent, not proof of identity, ownership, unspentness or safety. AI needs a configured backend and server API credential; static hosting provides only the local path. Confirmation brackets are heuristics, not settlement guarantees or mainnet advice. Browser recognition may use an external provider, and narration needs a matching installed voice. This is not continuous cloud audio, an autonomous payment system, an audited mainnet wallet or a privacy protocol. [Conversational flow and limits](conversational-review.md).
 
 No new tests, builds, lint, formatting checks or browser validation were performed for this track-alignment update, per project instructions. This document is submission copy; it does not record a newly validated demo or publish a Devfolio submission.

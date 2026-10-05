@@ -28,6 +28,7 @@ export async function fetchFeeContext(
     });
     if (!response.ok) throw new Error("Fee estimates unavailable.");
     const data = await response.json();
+    if (controller.signal.aborted) throw new Error("Fee request cancelled.");
     for (const key of [
       "fastestFee",
       "halfHourFee",

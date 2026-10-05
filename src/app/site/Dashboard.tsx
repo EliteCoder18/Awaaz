@@ -138,8 +138,8 @@ export function Dashboard({
           </h2>
           <p>
             {t(
-              "Bring the unsigned PSBT from your wallet. Check the recipient, exact sats and fee against your confirmed intent, then ask about the result. Gemini can help interpret unfamiliar wording; the local engine supplies the amounts and verdict.",
-              "वॉलेट की बिना साइन वाली PSBT लाएँ। प्राप्तकर्ता, सटीक सैट्स और शुल्क का पुष्टि किए निर्देश से मेल जाँचें, फिर परिणाम के बारे में पूछें। Gemini नई शब्दावली समझने में मदद कर सकता है; राशि और निर्णय स्थानीय इंजन देता है।",
+              "Bring the unsigned PSBT from your wallet and ask what it does, whether the fee is high, or how long confirmation might take. Optional OpenAI understands follow-ups; local facts and opt-in mempool estimates supply the answers. Then compare the file with your intended payment.",
+              "वॉलेट की बिना साइन वाली PSBT लाएँ और पूछें: यह क्या करेगी, शुल्क ज़्यादा है या पुष्टि कब हो सकती है? वैकल्पिक OpenAI अगले प्रश्न समझता है; स्थानीय तथ्य और सहमति वाले mempool अनुमान उत्तर देते हैं। फिर अपने चाहे हुए भुगतान से फ़ाइल का मेल जाँचें।",
             )}
           </p>
           <div className="feature-actions">
