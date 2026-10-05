@@ -44,6 +44,11 @@ import type {
 } from "../core/types";
 import { requestAiIntent } from "../adapters/aiIntent";
 import {
+  cloudSpeechSupported,
+  recognizeCloudSpeech,
+} from "../adapters/cloudSpeech";
+import { speakCloud, stopCloudVoice } from "../adapters/cloudVoice";
+import {
   buildDemoPsbt,
   demoPreviousTransaction,
   type DemoScenario,
@@ -117,6 +122,8 @@ export function App({
       new URLSearchParams(window.location.search).get("details") !== "1",
   );
   const [quiet, setQuiet] = useState(false);
+  const quietRef = useRef(quiet);
+  quietRef.current = quiet;
   const [interactionEpoch, setInteractionEpoch] = useState(0);
   const [viewedStep, setViewedStep] = useState<GuideStep>();
   const [comparisonOpen, setComparisonOpen] = useState(false);
@@ -314,6 +321,7 @@ export function App({
     () => () => {
       operation.current?.abort();
       window.speechSynthesis?.cancel();
+    stopCloudVoice();
     },
     [],
   );
@@ -327,6 +335,7 @@ export function App({
     operation.current?.abort();
     operation.current = undefined;
     window.speechSynthesis?.cancel();
+    stopCloudVoice();
     setAudioStatus("");
     setFileBusy(false);
   }
@@ -451,6 +460,28 @@ export function App({
     }
     const revision = stateRef.current.revision,
       sessionId = stateRef.current.sessionId;
+    const current = () =>
+      stateRef.current.revision === revision &&
+      stateRef.current.sessionId === sessionId;
+    if (aiEnabled) {
+      // Natural OpenAI voice first; the browser voice is the fallback.
+      window.speechSynthesis?.cancel();
+      setAudioStatus(t("Reading aloud…", "विवरण सुनाया जा रहा है…"));
+      speakCloud(report.speech, locale, speechRate)
+        .then(() => {
+          if (current())
+            setAudioStatus(t("Playback complete.", "विवरण पूरा सुनाया गया।"));
+        })
+        .catch(() => {
+          if (current() && !quietRef.current) readBrowser(report, locale);
+        });
+      return;
+    }
+    readBrowser(report, locale);
+  }
+  function readBrowser(report: LocalizedReport, locale: Locale) {
+    const revision = stateRef.current.revision,
+      sessionId = stateRef.current.sessionId;
     try {
       const ok = speakLocalizedReport(
         report,
@@ -500,6 +531,7 @@ export function App({
   }
   function stopAudio() {
     window.speechSynthesis?.cancel();
+    stopCloudVoice();
     setAudioStatus(t("Audio stopped.", "आवाज़ रोक दी गई।"));
   }
   function preset() {
@@ -649,6 +681,7 @@ export function App({
       fail(e instanceof Error ? e.message : "Check the payment fields.");
     }
   }
+  const recordingStop = useRef<AbortController | undefined>(undefined);
   async function listen() {
     if (!consent || state.phase === "capturing_intent") return;
     cancel();
@@ -658,12 +691,20 @@ export function App({
       revision = state.revision + 1;
     dispatch({ type: "START_LISTENING" });
     try {
-      const speech = await recognizeSpeech(
-        state.locale,
-        undefined,
-        10000,
-        controller.signal,
-      );
+      const cloud = aiEnabled && cloudSpeechSupported();
+      recordingStop.current = cloud ? new AbortController() : undefined;
+      const speech = cloud
+        ? await recognizeCloudSpeech(
+            state.locale,
+            controller.signal,
+            recordingStop.current?.signal,
+          )
+        : await recognizeSpeech(
+            state.locale,
+            undefined,
+            10000,
+            controller.signal,
+          );
       if (
         controller.signal.aborted ||
         stateRef.current.sessionId !== sessionId ||
@@ -694,6 +735,7 @@ export function App({
           ),
       });
     } finally {
+      recordingStop.current = undefined;
       if (operation.current === controller) operation.current = undefined;
     }
   }
@@ -1239,6 +1281,12 @@ export function App({
                       className="button ghost"
                       type="button"
                       onClick={() => {
+                        // OpenAI recording: stop and transcribe what was said.
+                        if (recordingStop.current) {
+                          recordingStop.current.abort();
+                          recordingStop.current = undefined;
+                          return;
+                        }
                         cancel();
                         dispatch({
                           type: "EDIT_TRANSCRIPT",
