@@ -1056,3 +1056,23 @@ select {
   color: var(--muted);
   font-size: 0.85rem;
 }
+.intent-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: var(--mint);
+}
+.intent-note small {
+  color: var(--muted);
+}
+.intent-note.question {
+  background: #fbf3dc;
+  color: #7a4e0e;
+}
+.intent-note.error {
+  background: #f9f1e2;
+}

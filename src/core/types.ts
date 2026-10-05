@@ -14,7 +14,8 @@ export type IntentAmbiguityCode =
   | "UNSUPPORTED_AMOUNT"
   | "MULTIPLE_AMOUNTS"
   | "NEGATED_INSTRUCTION"
-  | "UNSUPPORTED_LANGUAGE";
+  | "UNSUPPORTED_LANGUAGE"
+  | "AI_DISAGREES";
 export interface IntentAmbiguity {
   code: IntentAmbiguityCode;
   detail: string;

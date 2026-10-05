@@ -36,7 +36,13 @@ import { fromBase64, fromHex, toBase64, toHex } from "../core/encoding";
 import { interpretIntent } from "../core/intentInterpreter";
 import { confirmIntent } from "../core/intentConfirmation";
 import { presentReport } from "../core/reportPresenter";
-import type { Locale, LocalizedReport, ReviewSnapshot } from "../core/types";
+import type {
+  Locale,
+  LocalizedReport,
+  ReviewSnapshot,
+  SpeechResult,
+} from "../core/types";
+import { requestAiIntent } from "../adapters/aiIntent";
 import {
   buildDemoPsbt,
   demoPreviousTransaction,
@@ -507,7 +513,93 @@ export function App({
       ),
     });
   }
-  function interpret() {
+  // AI understands free-form speech; the exact parser then re-reads the AI's
+  // answer as a canonical phrase, so amounts and contacts are code-checked.
+  const [intentNote, setIntentNote] = useState<{
+    kind: "understood" | "question" | "error";
+    text: string;
+  }>();
+  const [understanding, setUnderstanding] = useState(false);
+  useEffect(() => setIntentNote(undefined), [state.sessionId]);
+  async function understand(speech: SpeechResult, signal: AbortSignal) {
+    const book = stateRef.current.profile.addressBook;
+    const local = interpretIntent(speech, book);
+    setIntentNote(undefined);
+    if (!aiEnabled) {
+      dispatch({ type: "SET_DRAFT", draft: local });
+      return;
+    }
+    setUnderstanding(true);
+    try {
+      const ai = await requestAiIntent(
+        speech.transcript,
+        speech.locale,
+        book,
+        signal,
+      );
+      if (signal.aborted) return;
+      const contact = book.find((c) => c.id === ai.recipientId);
+      if (ai.clarification || !contact || !ai.amountValue || !ai.unit) {
+        dispatch({ type: "SET_DRAFT", draft: local });
+        if (ai.clarification)
+          setIntentNote({ kind: "question", text: ai.clarification });
+        return;
+      }
+      const alias =
+        contact.aliases.find((a) => /^[a-z ]+$/i.test(a)) ??
+        contact.aliases[0] ??
+        contact.displayName;
+      const canonical = interpretIntent(
+        {
+          transcript: `send ${ai.amountValue} ${ai.unit} to ${alias}`,
+          locale: speech.locale,
+          source: speech.source,
+        },
+        book,
+      );
+      if (canonical.ambiguities.length || canonical.amountSats === undefined) {
+        dispatch({ type: "SET_DRAFT", draft: local });
+        return;
+      }
+      const localClean =
+        !local.ambiguities.length && local.amountSats !== undefined;
+      if (
+        localClean &&
+        (local.amountSats !== canonical.amountSats ||
+          local.recipientAlias !== canonical.recipientAlias)
+      ) {
+        dispatch({
+          type: "SET_DRAFT",
+          draft: {
+            ...local,
+            ambiguities: [{ code: "AI_DISAGREES", detail: canonical.transcript }],
+          },
+        });
+        return;
+      }
+      dispatch({
+        type: "SET_DRAFT",
+        draft: { ...canonical, transcript: speech.transcript },
+      });
+      setIntentNote({
+        kind: "understood",
+        text: `${contact.displayName} · ${canonical.amountSats.toLocaleString("en-IN")} sats`,
+      });
+    } catch {
+      if (signal.aborted) return;
+      dispatch({ type: "SET_DRAFT", draft: local });
+      setIntentNote({
+        kind: "error",
+        text: t(
+          "AI couldn't be reached, so the exact parser read your words.",
+          "AI से संपर्क नहीं हुआ, इसलिए सटीक जाँच ने आपके शब्द पढ़े।",
+        ),
+      });
+    } finally {
+      setUnderstanding(false);
+    }
+  }
+  async function interpret() {
     if (!state.transcript.trim()) {
       fail(
         t(
@@ -518,17 +610,20 @@ export function App({
       return;
     }
     cancel();
-    dispatch({
-      type: "SET_DRAFT",
-      draft: interpretIntent(
+    const controller = new AbortController();
+    operation.current = controller;
+    try {
+      await understand(
         {
           transcript: state.transcript,
           locale: state.locale,
           source: "edited",
         },
-        state.profile.addressBook,
-      ),
-    });
+        controller.signal,
+      );
+    } finally {
+      if (operation.current === controller) operation.current = undefined;
+    }
   }
   function confirm(script: string) {
     if (!state.draft) return;
@@ -581,10 +676,7 @@ export function App({
         sessionId,
         revision,
       });
-      dispatch({
-        type: "SET_DRAFT",
-        draft: interpretIntent(speech, stateRef.current.profile.addressBook),
-      });
+      await understand(speech, controller.signal);
     } catch (e) {
       if (controller.signal.aborted) return;
       dispatch({
@@ -1161,7 +1253,7 @@ export function App({
                   <button
                     className="button secondary"
                     type="button"
-                    onClick={interpret}
+                    onClick={() => void interpret()}
                   >
                     {t("Review instruction", "निर्देश जाँचें")}
                     <ArrowRight size={16} aria-hidden="true" />
@@ -1243,6 +1335,29 @@ export function App({
                     <span>sats</span>
                   </div>
                 </div>
+                {understanding && (
+                  <p className="intent-note" role="status">
+                    <LoaderCircle className="spin" size={15} aria-hidden="true" />
+                    {t("Understanding what you said…", "आपकी बात समझी जा रही है…")}
+                  </p>
+                )}
+                {intentNote && !understanding && (
+                  <p className={"intent-note " + intentNote.kind} role="status">
+                    {intentNote.kind === "understood" && (
+                      <>
+                        <span>{t("We understood:", "हमने समझा:")}</span>{" "}
+                        <strong>{intentNote.text}</strong>
+                        <small>
+                          {t(
+                            " · AI understood, exact parser re-checked",
+                            " · AI ने समझा, सटीक जाँच ने दोबारा जाँचा",
+                          )}
+                        </small>
+                      </>
+                    )}
+                    {intentNote.kind !== "understood" && intentNote.text}
+                  </p>
+                )}
                 {state.draft && (
                   <IntentReview
                     quiet={quiet}

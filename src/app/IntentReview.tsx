@@ -61,6 +61,10 @@ export function IntentReview({
       "This phrase is outside the supported grammar. Edit it to a simple payment.",
       "यह वाक्य समर्थित व्याकरण में नहीं है। सरल भुगतान निर्देश लिखें।",
     ),
+    AI_DISAGREES: t(
+      "The AI and the exact parser understood different payments. Say it again more simply.",
+      "AI और सटीक जाँच ने अलग-अलग भुगतान समझे। इसे फिर से सरल शब्दों में कहें।",
+    ),
   };
   return (
     <div className={"intent-readback " + (confirmed ? "is-confirmed" : "")}>
