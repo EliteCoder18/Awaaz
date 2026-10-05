@@ -1,0 +1,16 @@
+{
+  "network": "testnet3",
+  "blockHash": "00000000000000b85e5d90a3b9c271252b556f4d65cebe673cfd504277a104b5",
+  "txid": "b9f4580e3039942926321269ba969a1176dd9fd4e0e5483a73ee3f449ed9922e",
+  "vout": 1,
+  "scriptHex": "0014cf90592d6d60cc87c708e29c462a5a1e6618da04",
+  "inputSats": "90617",
+  "paymentSats": "50000",
+  "changeSats": "39617",
+  "feeSats": "1000",
+  "rawHex": "01000000000101b4aaf05896232821411886d552cd79b589443f03228eebb34ba0b57f9cbe42d50100000000ffffffff02c60b00000000000016001457da773a9ea3553c06c4318c43ce1c0393aac3adf961010000000000160014cf90592d6d60cc87c708e29c462a5a1e6618da0402483045022100e212d92e2acdb087a12fd53370868d2fd5737666fec4d7856cda1591d739a8420220561c612605038a6cda67b4b421418f1ca13ce4bd635cf33b6e5c519e22cff72801210372bbd2311e1dd3ebb190b1c844be0a272108b369751226dc3a0b54ddc6d7df1e00000000",
+  "source": "https://blockstream.info/testnet/api/tx/b9f4580e3039942926321269ba969a1176dd9fd4e0e5483a73ee3f449ed9922e/hex",
+  "retrievedUtc": "2026-10-04T21:18:00Z",
+  "provenance": "Public previous transaction retrieved read-only from Blockstream testnet API. Awaaz creates an unsigned illustrative PSBT spending this output; it is not a Sparrow export, not owned by this project, and its unspent status is not verified.",
+  "walletExported": false
+}

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+dist-sdk/
+playwright-report/
+test-results/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.superpowers/
+.playwright-cli/
+output/playwright/
+output/*.log
+.env
+.env.*
+!.env.example

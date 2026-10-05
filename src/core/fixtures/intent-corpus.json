@@ -1,0 +1,402 @@
+[
+  {
+    "transcript": "Send 1 sats to Riya",
+    "expected": "1"
+  },
+  {
+    "transcript": "Riya ko 1 sats bhejo",
+    "expected": "1"
+  },
+  {
+    "transcript": "रिया को 1 सैट्स भेजो",
+    "expected": "1"
+  },
+  {
+    "transcript": "रिया को १ सैट्स भेजो",
+    "expected": "1"
+  },
+  {
+    "transcript": "Send 21 sats to Riya",
+    "expected": "21"
+  },
+  {
+    "transcript": "Riya ko 21 sats bhejo",
+    "expected": "21"
+  },
+  {
+    "transcript": "रिया को 21 सैट्स भेजो",
+    "expected": "21"
+  },
+  {
+    "transcript": "रिया को २१ सैट्स भेजो",
+    "expected": "21"
+  },
+  {
+    "transcript": "Send 50 sats to Riya",
+    "expected": "50"
+  },
+  {
+    "transcript": "Riya ko 50 sats bhejo",
+    "expected": "50"
+  },
+  {
+    "transcript": "रिया को 50 सैट्स भेजो",
+    "expected": "50"
+  },
+  {
+    "transcript": "रिया को ५० सैट्स भेजो",
+    "expected": "50"
+  },
+  {
+    "transcript": "Send 100 sats to Riya",
+    "expected": "100"
+  },
+  {
+    "transcript": "Riya ko 100 sats bhejo",
+    "expected": "100"
+  },
+  {
+    "transcript": "रिया को 100 सैट्स भेजो",
+    "expected": "100"
+  },
+  {
+    "transcript": "रिया को १०० सैट्स भेजो",
+    "expected": "100"
+  },
+  {
+    "transcript": "Send 101 sats to Riya",
+    "expected": "101"
+  },
+  {
+    "transcript": "Riya ko 101 sats bhejo",
+    "expected": "101"
+  },
+  {
+    "transcript": "रिया को 101 सैट्स भेजो",
+    "expected": "101"
+  },
+  {
+    "transcript": "रिया को १०१ सैट्स भेजो",
+    "expected": "101"
+  },
+  {
+    "transcript": "Send 1,000 sats to Riya",
+    "expected": "1000"
+  },
+  {
+    "transcript": "Riya ko 1,000 sats bhejo",
+    "expected": "1000"
+  },
+  {
+    "transcript": "रिया को 1,000 सैट्स भेजो",
+    "expected": "1000"
+  },
+  {
+    "transcript": "रिया को १,००० सैट्स भेजो",
+    "expected": "1000"
+  },
+  {
+    "transcript": "Send 5000 sats to Riya",
+    "expected": "5000"
+  },
+  {
+    "transcript": "Riya ko 5000 sats bhejo",
+    "expected": "5000"
+  },
+  {
+    "transcript": "रिया को 5000 सैट्स भेजो",
+    "expected": "5000"
+  },
+  {
+    "transcript": "रिया को ५००० सैट्स भेजो",
+    "expected": "5000"
+  },
+  {
+    "transcript": "Send 25,000 sats to Riya",
+    "expected": "25000"
+  },
+  {
+    "transcript": "Riya ko 25,000 sats bhejo",
+    "expected": "25000"
+  },
+  {
+    "transcript": "रिया को 25,000 सैट्स भेजो",
+    "expected": "25000"
+  },
+  {
+    "transcript": "रिया को २५,००० सैट्स भेजो",
+    "expected": "25000"
+  },
+  {
+    "transcript": "Send 50,000 sats to Riya",
+    "expected": "50000"
+  },
+  {
+    "transcript": "Riya ko 50,000 sats bhejo",
+    "expected": "50000"
+  },
+  {
+    "transcript": "रिया को 50,000 सैट्स भेजो",
+    "expected": "50000"
+  },
+  {
+    "transcript": "रिया को ५०,००० सैट्स भेजो",
+    "expected": "50000"
+  },
+  {
+    "transcript": "Send 1,00,000 sats to Riya",
+    "expected": "100000"
+  },
+  {
+    "transcript": "Riya ko 1,00,000 sats bhejo",
+    "expected": "100000"
+  },
+  {
+    "transcript": "रिया को 1,00,000 सैट्स भेजो",
+    "expected": "100000"
+  },
+  {
+    "transcript": "रिया को १,००,००० सैट्स भेजो",
+    "expected": "100000"
+  },
+  {
+    "transcript": "Send 1,23,456 sats to Riya",
+    "expected": "123456"
+  },
+  {
+    "transcript": "Riya ko 1,23,456 sats bhejo",
+    "expected": "123456"
+  },
+  {
+    "transcript": "रिया को 1,23,456 सैट्स भेजो",
+    "expected": "123456"
+  },
+  {
+    "transcript": "रिया को १,२३,४५६ सैट्स भेजो",
+    "expected": "123456"
+  },
+  {
+    "transcript": "Send 1,00,00,000 sats to Riya",
+    "expected": "10000000"
+  },
+  {
+    "transcript": "Riya ko 1,00,00,000 sats bhejo",
+    "expected": "10000000"
+  },
+  {
+    "transcript": "रिया को 1,00,00,000 सैट्स भेजो",
+    "expected": "10000000"
+  },
+  {
+    "transcript": "रिया को १,००,००,००० सैट्स भेजो",
+    "expected": "10000000"
+  },
+  {
+    "transcript": "Send 2100000000000000 sats to Riya",
+    "expected": "2100000000000000"
+  },
+  {
+    "transcript": "Riya ko 2100000000000000 sats bhejo",
+    "expected": "2100000000000000"
+  },
+  {
+    "transcript": "रिया को 2100000000000000 सैट्स भेजो",
+    "expected": "2100000000000000"
+  },
+  {
+    "transcript": "रिया को २१०००००००००००००० सैट्स भेजो",
+    "expected": "2100000000000000"
+  },
+  {
+    "transcript": "Send fifty thousand sats to Riya",
+    "expected": "50000"
+  },
+  {
+    "transcript": "Send twenty five thousand sats to Riya",
+    "expected": "25000"
+  },
+  {
+    "transcript": "Send one hundred and one sats to Riya",
+    "expected": "101"
+  },
+  {
+    "transcript": "Send one lakh sats to Riya",
+    "expected": "100000"
+  },
+  {
+    "transcript": "Send two crore sats to Riya",
+    "expected": "20000000"
+  },
+  {
+    "transcript": "Send one lakh twenty five thousand sats to Riya",
+    "expected": "125000"
+  },
+  {
+    "transcript": "Send one million sats to Riya",
+    "expected": "1000000"
+  },
+  {
+    "transcript": "Send ninety nine sats to Riya",
+    "expected": "99"
+  },
+  {
+    "transcript": "Send five hundred sats to Riya",
+    "expected": "500"
+  },
+  {
+    "transcript": "Send one thousand five hundred sats to Riya",
+    "expected": "1500"
+  },
+  {
+    "transcript": "Riya ko पचास हजार sats bhejo",
+    "expected": "50000"
+  },
+  {
+    "transcript": "Riya ko pachaas hazaar sats bhejo",
+    "expected": "50000"
+  },
+  {
+    "transcript": "Riya ko पच्चीस हजार sats bhejo",
+    "expected": "25000"
+  },
+  {
+    "transcript": "Riya ko ek lakh sats bhejo",
+    "expected": "100000"
+  },
+  {
+    "transcript": "Riya ko दो लाख sats bhejo",
+    "expected": "200000"
+  },
+  {
+    "transcript": "Riya ko तीन हजार sats bhejo",
+    "expected": "3000"
+  },
+  {
+    "transcript": "Riya ko पांच सौ sats bhejo",
+    "expected": "500"
+  },
+  {
+    "transcript": "Riya ko bees hazaar sats bhejo",
+    "expected": "20000"
+  },
+  {
+    "transcript": "Riya ko सत्तर हजार sats bhejo",
+    "expected": "70000"
+  },
+  {
+    "transcript": "Riya ko एक करोड़ sats bhejo",
+    "expected": "10000000"
+  },
+  {
+    "transcript": "Send 0.00000001 BTC to Riya",
+    "expected": "1"
+  },
+  {
+    "transcript": "Send 0.0005 BTC to Riya",
+    "expected": "50000"
+  },
+  {
+    "transcript": "Send 0.001 BTC to Riya",
+    "expected": "100000"
+  },
+  {
+    "transcript": "Send 1 BTC to Riya",
+    "expected": "100000000"
+  },
+  {
+    "transcript": "Send 21 BTC to Riya",
+    "expected": "2100000000"
+  },
+  {
+    "transcript": "Send 21000000 BTC to Riya",
+    "expected": "2100000000000000"
+  },
+  {
+    "transcript": "Send -1 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 0 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 0.1 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 0.000000001 BTC to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 21000001 BTC to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50000 sats to Priya",
+    "expected": null
+  },
+  {
+    "transcript": "Do not send 50000 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Riya ko nahi bhejo 50000 sats",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50000 sats or 5000 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50,00 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50,000, no 5,000 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50,000 INR to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50000 to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send one two sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send fifty hundred thousand sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50000 sats to Riya or Asha",
+    "expected": null
+  },
+  {
+    "transcript": "Send 0 BTC to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send +50 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50000 sats and 0.0005 BTC to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 50000 sats tomorrow to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 1.00,000 sats to Riya",
+    "expected": null
+  },
+  {
+    "transcript": "Send 1,,000 sats to Riya",
+    "expected": null
+  }
+]

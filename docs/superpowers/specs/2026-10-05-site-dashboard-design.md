@@ -1,0 +1,15 @@
+# Awaaz — themed dashboard and review site
+
+Intent: user wants a complete cohesive UI with a dashboard entry and dedicated actual application page, inspired by Bitmela's thematic consistency, not copied. Preserve accessible Hindi/English testnet verification, no local Sparrow, signing, wallet connections or fake financial claims. Prior explicit instruction not to ask again applies to repeated design approval; proceed inline with documented assumptions.
+
+Choose modern Indian ledger / listening desk: warm paper, plum ink, saffron action, hand-set editorial serif with self-hosted bilingual sans; soundwave and ruled ledger motifs, intentional restrained Framer Motion. No generic charts, fake account balances, gradient SaaS cards, mascot, custom cursor or login facade.
+
+Routes: `/` dashboard, `/review` actual verifier, `/guide` how-it-works and honest safety boundaries, `/developers` reusable engine/integration guide. Unknown routes offer a real return path. Sidebar desktop, wrapping compact nav mobile; same wordmark/navigation/theme throughout. Native links support deep links/new tabs, internal clicks use browser history and focus page heading. Back/forward work. Review component remains mounted after first open for in-memory continuity; when hidden, async financial operations and audio cancel. Interrupted review returns to a retryable state. Finished result remains only for unchanged data; reload/reset clear everything.
+
+Dashboard: genuine session readiness (confirmed intent / transaction loaded / current verdict), primary review CTA, clearly labeled synthetic demo shortcut, explanation voice→intent→facts, preparation checklist, guide links. No generated history or holdings. Demo shortcut sets preset phrase and tampered unsigned fixture, but never auto-confirms or verifies. Confirmation stays user-controlled. All demo values labeled synthetic/no funds. Dashboard language supports Hindi; workspace language remains explicit and invalidates intent on change.
+
+Actual review: reuse existing verification engine/forms, contextual intent, PSBT/evidence/QR, fee context, grounded questions, record and TTS; embed in app shell with compact workspace title/progress/toolbar. Theme forms and financial results consistently, never animate/fade/delay safety facts. Preserve keyboard labels and statuses; no reduced functionality disguised as redesign.
+
+No authentication required: no server, accounts, persistence, hosted keys or saved reviews. Browser microphone permission plus explicit existing consent only if voice chosen; fee estimates remain opt-in. Do not add cloud auth or request account credentials. No new dependencies required.
+
+Tests: route/CTA/deep-link/back/unknown-route, no auto confirmation, preserved completed review, canceled delayed QR/verification/speech on leaving, original unit and browser verification suites, all page axe states, 375/768/1440 layouts, keyboard/focus/reduced motion. Final visual inspection of actual dashboard and review screenshots. No deployment/commit/publish authorization inferred.

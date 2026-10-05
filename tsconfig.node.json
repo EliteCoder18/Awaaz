@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": [
+    "vite.config.ts",
+    "vite.sdk.config.ts",
+    "playwright.config.ts",
+    "server",
+    "src/core/questionCategories.ts",
+    "src/core/types.ts"
+  ]
+}
