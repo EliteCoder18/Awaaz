@@ -110,7 +110,7 @@ export async function transcribe(
         : mimeType.includes("wav")
           ? "wav"
           : "webm";
-    form.append("file", new Blob([audio], { type: mimeType }), "speech." + ext);
+    form.append("file", new Blob([new Uint8Array(audio)], { type: mimeType }), "speech." + ext);
     form.append("model", config.transcribeModel);
     form.append(
       "prompt",
