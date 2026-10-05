@@ -2,14 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Ear, FileUp, Volume2, Square, ArrowRight, Download } from "lucide-react";
 import { parsePsbt } from "../core/psbtParser";
 import type { Locale, LocalizedReport } from "../core/types";
+import type { FinalVerdict } from "../core/finalVerdict";
 import type { WorkflowState } from "./workflow";
 import type { GuideStep } from "./ReviewGuide";
 
 export function AccessibleReview({
-  state, localized, active, quiet, step, rate, onRate, onRead, onStop,
+  state, finalVerdict, localized, active, quiet, step, rate, onRate, onRead, onStop,
   onSoundOn, onStep, onCompare, onDemo, onLanguage,
 }: {
   state: WorkflowState;
+  finalVerdict?: FinalVerdict;
   localized?: LocalizedReport;
   active: boolean;
   quiet: boolean;
@@ -92,7 +94,9 @@ export function AccessibleReview({
   const binding = `${state.sessionId}:${state.revision}:${state.result?.receipt.binding.psbtHash ?? ""}`;
   const items = acknowledgements.binding === binding ? acknowledgements.items : [];
   const understood = items.length === 3 && items.every(Boolean);
-  const matched = state.result?.receipt.report.verdict === "MATCH";
+  const matched = finalVerdict
+    ? finalVerdict === "GO"
+    : state.result?.receipt.report.verdict === "MATCH";
   const checklist = [
     t("I independently confirmed the recipient’s full address.", "मैंने प्राप्तकर्ता के पूरे पते की अलग से पुष्टि की है।"),
     t("I understand the amount, fee, change, and every other output.", "मैं राशि, शुल्क, चेंज और हर दूसरे हिस्से को समझता हूँ।"),

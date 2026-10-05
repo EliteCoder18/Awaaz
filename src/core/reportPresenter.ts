@@ -42,6 +42,18 @@ function issueDetail(i: VerificationIssue, locale: Locale): string {
       return hi
         ? "एक अतिरिक्त, अनधिकृत भुगतान मिला: " + i.actual + "।"
         : "An additional unapproved payment was found: " + i.actual + ".";
+    case "LOOKALIKE_ADDRESS":
+      return hi
+        ? "धोखे का पता: " +
+            i.actual +
+            " दिखने में " +
+            i.expected +
+            " जैसा है, पर यह अलग पता है।"
+        : "Lookalike address: " +
+            i.actual +
+            " looks like " +
+            i.expected +
+            " but is a different address. This is a common scam.";
     case "FEE_CAP_EXCEEDED":
       return hi
         ? "शुल्क आपकी सीमा से अधिक है: सीमा " +

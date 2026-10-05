@@ -14,6 +14,7 @@
     "server",
     "api",
     "src/core/questionCategories.ts",
+    "src/core/aiContract.ts",
     "src/core/types.ts"
   ]
 }

@@ -8,7 +8,9 @@ import {
   Fingerprint,
   Check,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import type { Locale, LocalizedReport, ReviewResult } from "../core/types";
+import type { FinalVerdict } from "../core/finalVerdict";
 import { PictureReceipt } from "./PictureReceipt";
 
 export function TransactionReview({
@@ -19,7 +21,11 @@ export function TransactionReview({
   onStop,
   simple = false,
   quiet = false,
+  finalVerdict,
+  aiPanel,
 }: {
+  finalVerdict?: FinalVerdict;
+  aiPanel?: ReactNode;
   result?: ReviewResult;
   localized?: LocalizedReport;
   locale: Locale;
@@ -32,12 +38,29 @@ export function TransactionReview({
     t = (en: string, hin: string) => (hi ? hin : en);
   const report = result?.receipt.report,
     verdict = report?.verdict;
-  const Icon =
-    verdict === "MATCH"
-      ? ShieldCheck
+  const final =
+    finalVerdict ??
+    (verdict === "MATCH"
+      ? "GO"
       : verdict === "MISMATCH"
+        ? "DO_NOT_SIGN"
+        : verdict
+          ? "CANT_TELL"
+          : undefined);
+  const Icon =
+    final === "GO"
+      ? ShieldCheck
+      : final === "DO_NOT_SIGN" || final === "PAUSE"
         ? ShieldAlert
         : ShieldQuestion;
+  const panelClass = final
+    ? {
+        GO: "match",
+        PAUSE: "pause",
+        DO_NOT_SIGN: "mismatch",
+        CANT_TELL: "incomplete",
+      }[final]
+    : "empty";
   const p = report?.speakableParameters;
   const amount = (key: string) =>
     p?.[key] && /^\d+$/.test(p[key])
@@ -46,7 +69,7 @@ export function TransactionReview({
   return (
     <section
       id="review"
-      className={"review-panel " + (verdict?.toLowerCase() ?? "empty")}
+      className={"review-panel " + panelClass}
       aria-labelledby="review-heading"
       tabIndex={-1}
     >
@@ -82,8 +105,9 @@ export function TransactionReview({
           animate={{ opacity: 1 }}
         >
           {simple && report && (
-            <PictureReceipt report={report} locale={locale} />
+            <PictureReceipt report={report} locale={locale} final={final} />
           )}
+          {aiPanel}
           <div hidden={simple} className="review-metrics">
             <div>
               <span>{t("Payment", "भुगतान")}</span>

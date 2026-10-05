@@ -6,6 +6,8 @@ export const RIYA_SCRIPT_HEX = "0014" + "11".repeat(20);
 export const CHANGE_SCRIPT_HEX = "0014" + "22".repeat(20);
 export const UNKNOWN_SCRIPT_HEX = "0014" + "33".repeat(20);
 export const ASHA_SCRIPT_HEX = "0014" + "44".repeat(20);
+// Same first 19 bytes as Riya's script: the address shares a long prefix.
+export const LOOKALIKE_SCRIPT_HEX = "0014" + "11".repeat(19) + "12";
 export const RIYA_ADDRESS = address.fromOutputScript(
   fromHex(RIYA_SCRIPT_HEX),
   networks.testnet,
@@ -37,7 +39,13 @@ export const DEMO_WALLET_PROFILE = createWalletProfile({
   revision: 0,
 });
 export type DemoScenario =
-  "correct" | "tampered" | "extra" | "high-fee" | "missing-evidence" | "split";
+  | "correct"
+  | "tampered"
+  | "extra"
+  | "high-fee"
+  | "missing-evidence"
+  | "split"
+  | "lookalike";
 function demoPrevious(input: bigint): Transaction {
   const previous = new Transaction();
   previous.version = 2;
@@ -82,7 +90,11 @@ export function buildDemoPsbt(scenario: DemoScenario): string {
   });
   psbt.addOutput({
     script: fromHex(
-      scenario === "tampered" ? UNKNOWN_SCRIPT_HEX : RIYA_SCRIPT_HEX,
+      scenario === "tampered"
+        ? UNKNOWN_SCRIPT_HEX
+        : scenario === "lookalike"
+          ? LOOKALIKE_SCRIPT_HEX
+          : RIYA_SCRIPT_HEX,
     ),
     value:
       scenario === "tampered"

@@ -9,13 +9,16 @@ import {
   CircleHelp,
   Check,
 } from "lucide-react";
+import type { FinalVerdict } from "../core/finalVerdict";
 import type { Locale, VerificationReport } from "../core/types";
 export function PictureReceipt({
   report,
   locale,
+  final,
 }: {
   report: VerificationReport;
   locale: Locale;
+  final?: FinalVerdict;
 }) {
   const t = (en: string, hi: string) => (locale === "hi-IN" ? hi : en),
     p = report.speakableParameters;
@@ -66,10 +69,17 @@ export function PictureReceipt({
       Icon: Undo2,
     },
   ];
-  const ok = report.verdict === "MATCH",
+  const verdict =
+    final ??
+    (report.verdict === "MATCH"
+      ? "GO"
+      : report.verdict === "MISMATCH"
+        ? "DO_NOT_SIGN"
+        : "CANT_TELL");
+  const ok = verdict === "GO",
     Icon = ok
       ? Check
-      : report.verdict === "MISMATCH"
+      : verdict === "DO_NOT_SIGN" || verdict === "PAUSE"
         ? OctagonAlert
         : CircleHelp;
   return (
@@ -85,7 +95,9 @@ export function PictureReceipt({
           <strong>
             {ok
               ? t("Instruction matches", "निर्देश मेल खाता है")
-              : t("DO NOT SIGN", "साइन न करें")}
+              : verdict === "PAUSE"
+                ? t("PAUSE · CHECK FIRST", "रुकें · पहले जाँचें")
+                : t("DO NOT SIGN", "साइन न करें")}
           </strong>
           <p>
             {ok
@@ -93,10 +105,15 @@ export function PictureReceipt({
                   "This is not a guarantee of safety.",
                   "यह सुरक्षा की गारंटी नहीं है।",
                 )
-              : t(
-                  "Fix the warning or missing information first.",
-                  "पहले चेतावनी या अधूरी जानकारी ठीक करें।",
-                )}
+              : verdict === "PAUSE"
+                ? t(
+                    "The numbers match, but the situation looks risky. Confirm independently before signing.",
+                    "राशि मेल खाती है, पर स्थिति जोखिम भरी लगती है। साइन से पहले अलग से पुष्टि करें।",
+                  )
+                : t(
+                    "Fix the warning or missing information first.",
+                    "पहले चेतावनी या अधूरी जानकारी ठीक करें।",
+                  )}
           </p>
         </div>
       </div>

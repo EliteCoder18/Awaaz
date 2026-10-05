@@ -1,3 +1,4 @@
+import { findLookalike } from "./lookalike";
 import type {
   ConfirmedIntent,
   PaymentIntent,
@@ -112,6 +113,27 @@ export function verifyPayment(
       !change.has(script)
     )
       add("UNSUPPORTED_OUTPUT", "warning", undefined, script);
+  }
+  const trusted = [
+    ...profile.addressBook.flatMap((e) =>
+      e.address ? [{ name: e.displayName, address: e.address }] : [],
+    ),
+    ...(profile.changeAddresses ?? []).map((a) => ({
+      name: "change",
+      address: a,
+    })),
+  ];
+  for (const output of external) {
+    if (output.scriptHex.toLowerCase() === expected || !output.displayAddress)
+      continue;
+    const lookalike = findLookalike(output.displayAddress, trusted);
+    if (lookalike)
+      add(
+        "LOOKALIKE_ADDRESS",
+        "danger",
+        lookalike.name + " · " + lookalike.address,
+        output.displayAddress,
+      );
   }
   if (!hasRecipient)
     add(

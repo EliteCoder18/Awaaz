@@ -1,11 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createGeminiMiddleware } from "../../server/gemini.js";
+import { speakSpec } from "../../server/ai.js";
+import { createEndpoint } from "../../server/endpoint.js";
 import { readVercelBody, sameOriginRequest } from "../../server/http.js";
 
-const handle = createGeminiMiddleware({
-  apiKey: process.env.GEMINI_API_KEY,
+const handle = createEndpoint(speakSpec, {
   allowRequest: sameOriginRequest,
-  readBody: (req) => readVercelBody(req, 2048),
+  readBody: readVercelBody,
 });
 
 export default function handler(req: IncomingMessage, res: ServerResponse) {

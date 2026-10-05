@@ -24,6 +24,13 @@ import { runVerification } from "../adapters/verificationClient";
 import { fetchPreviousTransactions } from "../adapters/prevTxFetch";
 import { parsePsbt } from "../core/psbtParser";
 import { missingPrevoutTxids } from "../core/prevoutEvidence";
+import { buildReviewRequest, requestAiReview } from "../adapters/aiReview";
+import type { AiReviewResponse } from "../core/aiContract";
+import {
+  applyFinalVerdict,
+  combineVerdict,
+  finalVerdictLabel,
+} from "../core/finalVerdict";
 import { fromBase64, fromHex, toBase64, toHex } from "../core/encoding";
 import { interpretIntent } from "../core/intentInterpreter";
 import { confirmIntent } from "../core/intentConfirmation";
@@ -49,6 +56,7 @@ import { NetworkContext } from "./NetworkContext";
 import { PsbtPreview } from "./PsbtPreview";
 import { ReviewGuide, type GuideStep } from "./ReviewGuide";
 import { AccessibleReview } from "./AccessibleReview";
+import { AiCheck } from "./AiCheck";
 import { useAccessibilityMode } from "./useAccessibilityMode";
 import "./app.css";
 import "./companion.css";
@@ -144,13 +152,78 @@ export function App({
   const lastDemo = useRef(0);
   const hi = state.locale === "hi-IN",
     t = (en: string, hin: string) => (hi ? hin : en);
-  const localized = useMemo(
+  const codeLocalized = useMemo(
     () =>
       state.result
         ? presentReport(state.result.receipt.report, state.locale)
         : undefined,
     [state.result, state.locale],
   );
+  // AI safety check: judges the situation after the code check. It can only
+  // make the final verdict stricter.
+  const [aiEnabled, setAiEnabled] = useState(true);
+  const [aiReview, setAiReview] = useState<{
+    key: string;
+    status: "loading" | "done" | "error";
+    data?: AiReviewResponse;
+  }>();
+  const aiKey = state.result
+    ? `${state.sessionId}:${state.revision}:${state.locale}`
+    : "";
+  const currentAi = aiEnabled && aiReview?.key === aiKey ? aiReview : undefined;
+  const finalVerdict = state.result
+    ? combineVerdict(
+        state.result.receipt.report.verdict,
+        currentAi?.status === "done" ? currentAi.data?.decision : undefined,
+      )
+    : undefined;
+  const localized = useMemo(
+    () =>
+      codeLocalized && state.result && finalVerdict
+        ? applyFinalVerdict(
+            codeLocalized,
+            finalVerdict,
+            state.result.receipt.report.verdict,
+            currentAi?.data?.reasons.map((r) => r.text) ?? [],
+            state.locale,
+          )
+        : codeLocalized,
+    [codeLocalized, finalVerdict, currentAi, state.result, state.locale],
+  );
+  const autoReadRef = useRef(false);
+  useEffect(() => {
+    if (!state.result || !state.intent || !aiEnabled || !active) return;
+    const key = aiKey;
+    const controller = new AbortController();
+    setAiReview({ key, status: "loading" });
+    requestAiReview(
+      buildReviewRequest(
+        state.result,
+        state.intent,
+        state.profile,
+        state.intent.context ?? state.context,
+        state.locale,
+      ),
+      controller.signal,
+    )
+      .then((data) => {
+        if (!controller.signal.aborted)
+          setAiReview({ key, status: "done", data });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setAiReview({ key, status: "error" });
+      });
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiKey, aiEnabled, active]);
+  useEffect(() => {
+    // Deferred auto-read: speak once the AI check settles (or right away when off).
+    if (!autoReadRef.current || !localized) return;
+    if (aiEnabled && (!currentAi || currentAi.status === "loading")) return;
+    autoReadRef.current = false;
+    if (!accessible) read(localized);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localized, currentAi, aiEnabled]);
   useEffect(() => {
     document.documentElement.lang = hi ? "hi" : "en";
     if (active) onLocaleChange?.(state.locale);
@@ -191,9 +264,9 @@ export function App({
     onSession?.({
       hasIntent: !!state.intent,
       hasTransaction: !!state.psbtBytes,
-      verdict: state.result?.receipt.report.verdict,
+      verdict: finalVerdict && finalVerdictLabel(finalVerdict, state.locale),
     });
-  }, [state.intent, state.psbtBytes, state.result, onSession]);
+  }, [state.intent, state.psbtBytes, state.result, finalVerdict, onSession]);
   useEffect(
     () => () => {
       operation.current?.abort();
@@ -622,7 +695,7 @@ export function App({
       )
         return;
       dispatch({ type: "SET_RESULT", result });
-      if (autoRead && !accessible) read(presentReport(result.receipt.report, state.locale));
+      if (autoRead && !accessible) autoReadRef.current = true;
     } catch (e) {
       if (!controller.signal.aborted)
         dispatch({
@@ -841,6 +914,7 @@ export function App({
           {accessible && (
             <AccessibleReview
               state={state}
+              finalVerdict={finalVerdict}
               localized={localized}
               active={active}
               quiet={quiet}
@@ -1502,6 +1576,14 @@ export function App({
                               "दो आउटपुट का PSBT लोड करें",
                             ),
                           ],
+                          [
+                            "lookalike",
+                            t("Lookalike address", "मिलता-जुलता पता"),
+                            t(
+                              "Load lookalike address PSBT",
+                              "मिलते-जुलते पते का PSBT लोड करें",
+                            ),
+                          ],
                         ] as [DemoScenario, string, string][]
                       ).map(([scenario, label, name]) => (
                         <button
@@ -1619,6 +1701,21 @@ export function App({
                 className="report-focus"
               >
                 <TransactionReview
+                  finalVerdict={finalVerdict}
+                  aiPanel={
+                    state.result &&
+                    finalVerdict && (
+                      <AiCheck
+                        locale={state.locale}
+                        codeVerdict={state.result.receipt.report.verdict}
+                        finalVerdict={finalVerdict}
+                        enabled={aiEnabled}
+                        status={currentAi?.status}
+                        review={currentAi?.data}
+                        onToggle={setAiEnabled}
+                      />
+                    )
+                  }
                   simple={simpleView}
                   quiet={quiet}
                   result={state.result}

@@ -104,6 +104,7 @@ export type VerificationIssueCode =
   | "RECIPIENT_MISMATCH"
   | "AMOUNT_MISMATCH"
   | "UNKNOWN_OUTPUT"
+  | "LOOKALIKE_ADDRESS"
   | "FEE_UNAVAILABLE"
   | "INVALID_FEE"
   | "FEE_CAP_EXCEEDED"
