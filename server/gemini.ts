@@ -3,8 +3,8 @@ import {
   QUESTION_CATEGORIES,
   readQuestionCategory,
   type QuestionCategory,
-} from "../src/core/questionCategories.ts";
-import type { Locale } from "../src/core/types.ts";
+} from "../src/core/questionCategories.js";
+import type { Locale } from "../src/core/types.js";
 
 const MODEL_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent";
@@ -124,6 +124,16 @@ function loopbackRequest(req: IncomingMessage): boolean {
     return false;
   }
 }
+// Deployed (HTTPS) same-origin check, used by the Vercel function.
+export function sameOriginRequest(req: IncomingMessage): boolean {
+  try {
+    const origin = new URL(req.headers.origin ?? "");
+    const host = req.headers["x-forwarded-host"] ?? req.headers.host;
+    return origin.protocol === "https:" && origin.host === host;
+  } catch {
+    return false;
+  }
+}
 function send(res: ServerResponse, status: number, data: unknown) {
   if (res.destroyed || res.writableEnded) return;
   res.writeHead(status, {
@@ -133,12 +143,12 @@ function send(res: ServerResponse, status: number, data: unknown) {
   });
   res.end(JSON.stringify(data));
 }
-class BodyError extends Error {
+export class BodyError extends Error {
   constructor(public status: number) {
     super("Invalid question request.");
   }
 }
-function readBody(req: IncomingMessage): Promise<string> {
+function readStreamBody(req: IncomingMessage): Promise<string> {
   if (Number(req.headers["content-length"] ?? 0) > 2048)
     return Promise.reject(new BodyError(413));
   return new Promise((resolve, reject) => {
@@ -178,17 +188,21 @@ export function createGeminiMiddleware({
   apiKey,
   fetcher = fetch,
   now = Date.now,
+  allowRequest = loopbackRequest,
+  readBody = readStreamBody,
 }: {
   apiKey?: string;
   fetcher?: typeof fetch;
   now?: () => number;
+  allowRequest?: (req: IncomingMessage) => boolean;
+  readBody?: (req: IncomingMessage) => Promise<string>;
 }) {
   let windowStart = now(),
     requests = 0,
     active = 0;
   return async (req: IncomingMessage, res: ServerResponse) => {
-    if (!loopbackRequest(req))
-      return send(res, 403, { error: "Local same-origin requests only." });
+    if (!allowRequest(req))
+      return send(res, 403, { error: "Same-origin requests only." });
     if (req.method !== "POST")
       return send(res, 405, { error: "POST required." });
     if (
@@ -197,7 +211,7 @@ export function createGeminiMiddleware({
       return send(res, 415, { error: "JSON required." });
     if (!apiKey)
       return send(res, 503, {
-        error: "Set GEMINI_API_KEY on the local server.",
+        error: "Set GEMINI_API_KEY on the server.",
       });
     if (now() - windowStart >= 60000) {
       windowStart = now();

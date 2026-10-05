@@ -12,6 +12,7 @@
     "vite.sdk.config.ts",
     "playwright.config.ts",
     "server",
+    "api",
     "src/core/questionCategories.ts",
     "src/core/types.ts"
   ]

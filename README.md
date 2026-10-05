@@ -52,6 +52,10 @@ No cloud agent is required for this demo. Optional Gemini question understanding
 
 For local Gemini access, copy `.env.example` to `.env.local` and set server-only `GEMINI_API_KEY` to a restricted Google AI Studio credential. Restart Vite if necessary. Never use a `VITE_*` key or commit environment files; rotate any key pasted into chat. Dev and preview provide a loopback-only, same-origin endpoint with request-size, concurrency, rate and timeout limits. A static deployment has no Gemini backend, and the Vite middleware must not be treated as a public production server. Google account/model quota and data-use terms apply; availability and a free tier are not guaranteed.
 
+## Deploy (Vercel)
+
+`vercel.json` builds the Vite app to `dist/`, rewrites deep links (`/review`, `/guide`, …) to `index.html`, and `api/gemini/question.ts` serves the optional Gemini endpoint as a same-origin HTTPS serverless function. Set `GEMINI_API_KEY` in the Vercel project's environment variables; without it, questions fall back to the local router. Rate limits are per function instance, so also cap quota on the Google key.
+
 ## Supported inputs and trust boundary
 
 - Unsigned BIP174 PSBT v0 as binary `.psbt`, text Base64 `.psbt`, or pasted canonical Base64; decoded PSBT limit 100,000 bytes, maximum 100 inputs and 100 outputs.
