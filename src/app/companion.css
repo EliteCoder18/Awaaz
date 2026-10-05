@@ -1076,3 +1076,153 @@ select {
 .intent-note.error {
   background: #f9f1e2;
 }
+
+/* One-screen conversation */
+.companion {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 0 2rem;
+}
+.companion-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+.companion-toolbar .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.bubble {
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  max-width: 100%;
+}
+.bubble p {
+  margin: 0 0 0.6rem;
+}
+.bubble.awaaz {
+  border-top-left-radius: 6px;
+  justify-self: start;
+  width: 100%;
+}
+.bubble.user {
+  justify-self: end;
+  border-top-right-radius: 6px;
+  background: var(--teal);
+  color: var(--white);
+  border-color: var(--teal);
+  max-width: 85%;
+  overflow-wrap: anywhere;
+}
+.bubble.result {
+  padding: 0.5rem;
+  background: transparent;
+  border: 0;
+}
+.companion-input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.companion-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font: inherit;
+  background: var(--paper);
+}
+.mic-button,
+.send-button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  background: var(--saffron);
+  color: var(--white);
+}
+.mic-button.listening {
+  background: var(--danger);
+  animation: mic-pulse 1.2s ease-in-out infinite;
+}
+.send-button {
+  background: var(--teal);
+}
+.send-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@keyframes mic-pulse {
+  50% {
+    box-shadow: 0 0 0 8px rgba(151, 59, 46, 0.18);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mic-button.listening {
+    animation: none;
+  }
+}
+.companion-more {
+  margin-top: 0.75rem;
+}
+.companion-more summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.companion-fee {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  max-width: 260px;
+}
+.companion-fee input {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+}
+.companion-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+.companion-file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.companion-demos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+}
+.chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.chip.selected {
+  border-color: var(--teal);
+  background: var(--mint);
+}

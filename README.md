@@ -62,7 +62,25 @@ For local Gemini access, copy `.env.example` to `.env.local` and set server-only
 
 ## Deploy (Vercel)
 
-`vercel.json` builds the Vite app to `dist/`, rewrites deep links (`/review`, `/guide`, …) to `index.html`, and `api/gemini/question.ts` serves the optional Gemini endpoint as a same-origin HTTPS serverless function. Set `GEMINI_API_KEY` in the Vercel project's environment variables; without it, questions fall back to the local router. Rate limits are per function instance, so also cap quota on the Google key.
+`vercel.json` builds the Vite app to `dist/` and rewrites deep links (`/review`, `/guide`, …) to `index.html`. The `api/` folder holds small serverless functions that keep API keys on the server:
+
+- `api/ai/intent`: understands a free-form instruction (contact and exact amount), which the exact parser then re-checks.
+- `api/ai/review`: the AI situation check. It returns go / pause / block plus an explanation. The AI can only make the final verdict stricter, and its text is shown only if it passes the Number Lock.
+- `api/ai/transcribe` and `api/ai/speak`: OpenAI speech-to-text and text-to-speech.
+- `api/gemini/question`: the optional legacy question classifier.
+
+Set these in Vercel → Project → Settings → Environment Variables (Production and Preview), then redeploy:
+
+| Variable | Required | Default |
+|---|---|---|
+| `OPENAI_API_KEY` | yes, for AI features | — |
+| `OPENAI_MODEL` | no | `gpt-6-luna` |
+| `OPENAI_TRANSCRIBE_MODEL` | no | `gpt-4o-mini-transcribe` |
+| `OPENAI_TTS_MODEL` | no | `gpt-4o-mini-tts` |
+| `OPENAI_TTS_VOICE` | no | `marin` |
+| `GEMINI_API_KEY` | no | — |
+
+Locally, put the same variables in `.env.local`; never use a `VITE_` prefix. Rate limits apply per function instance, so also set a monthly usage limit in the OpenAI dashboard. Without a key, Awaaz falls back to the code-only check and browser speech. Add `?lockdemo=1` to the review URL to see the Number Lock reject a planted wrong number.
 
 ## Supported inputs and trust boundary
 

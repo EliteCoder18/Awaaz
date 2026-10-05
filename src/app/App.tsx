@@ -69,6 +69,7 @@ import { PsbtPreview } from "./PsbtPreview";
 import { ReviewGuide, type GuideStep } from "./ReviewGuide";
 import { AccessibleReview } from "./AccessibleReview";
 import { AiCheck } from "./AiCheck";
+import { CompanionFlow } from "./CompanionFlow";
 import { useAccessibilityMode } from "./useAccessibilityMode";
 import "./app.css";
 import "./companion.css";
@@ -135,6 +136,8 @@ export function App({
   }, [comparisonOpen]);
   const simpleView = simple || accessible;
   const psbtFirst = (fileFirst || accessible) && simpleView;
+  // Simple view on the site is the one-screen conversation.
+  const companion = embedded && simpleView && !accessible;
   const guidedStep: GuideStep =
     viewedStep ??
     (state.result
@@ -414,6 +417,26 @@ export function App({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.evidence, fileBusy]);
   useEffect(() => setProofStatus(""), [state.psbtBytes, state.sessionId]);
+  // Conversation mode: check automatically once intent and file are both in.
+  const autoVerified = useRef("");
+  useEffect(() => {
+    const key = state.sessionId + ":" + state.revision;
+    if (
+      !companion ||
+      !state.intent ||
+      !state.psbtBytes ||
+      !state.profileReviewed ||
+      state.result ||
+      state.error ||
+      state.phase === "verifying" ||
+      fileBusy ||
+      autoVerified.current === key
+    )
+      return;
+    autoVerified.current = key;
+    void verify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companion, state.intent, state.psbtBytes, state.revision, fileBusy]);
   const missingProof = (missingTxids.length > 0 || proofStatus) && (
     <div className="missing-proof" role="status">
       {missingTxids.length > 0 && (
@@ -682,8 +705,8 @@ export function App({
     }
   }
   const recordingStop = useRef<AbortController | undefined>(undefined);
-  async function listen() {
-    if (!consent || state.phase === "capturing_intent") return;
+  async function listen(force = false) {
+    if ((!consent && !force) || state.phase === "capturing_intent") return;
     cancel();
     const controller = new AbortController();
     operation.current = controller;
@@ -866,7 +889,8 @@ export function App({
       )
         return;
       dispatch({ type: "SET_RESULT", result });
-      if (autoRead && !accessible) autoReadRef.current = true;
+      if ((autoRead || companion) && !accessible && !quiet)
+        autoReadRef.current = true;
     } catch (e) {
       if (!controller.signal.aborted)
         dispatch({
@@ -940,6 +964,79 @@ export function App({
         ".";
     read({ title: "", instruction: "", details: [], speech: text });
   }
+  const transactionReview = (
+    <TransactionReview
+      finalVerdict={finalVerdict}
+      aiPanel={
+        state.result &&
+        finalVerdict && (
+          <AiCheck
+            locale={state.locale}
+            codeVerdict={state.result.receipt.report.verdict}
+            finalVerdict={finalVerdict}
+            enabled={aiEnabled}
+            status={currentAi?.status}
+            review={
+              currentAi?.data &&
+              lockedAi && {
+                ...currentAi.data,
+                followUps: lockedAi.followUps,
+              }
+            }
+            lockProblems={simpleView ? [] : lockedAi?.problems}
+            onToggle={setAiEnabled}
+          />
+        )
+      }
+      simple={simpleView}
+      quiet={quiet}
+      result={state.result}
+      localized={localized}
+      locale={state.locale}
+      onRead={() => localized && read(localized)}
+      onStop={stopAudio}
+    />
+  );
+  const intentReviewNodes = (
+    <>
+      {understanding && (
+        <p className="intent-note" role="status">
+          <LoaderCircle className="spin" size={15} aria-hidden="true" />
+          {t("Understanding what you said…", "आपकी बात समझी जा रही है…")}
+        </p>
+      )}
+      {intentNote && !understanding && (
+        <p className={"intent-note " + intentNote.kind} role="status">
+          {intentNote.kind === "understood" && (
+            <>
+              <span>{t("We understood:", "हमने समझा:")}</span>{" "}
+              <strong>{intentNote.text}</strong>
+              <small>
+                {t(
+                  " · AI understood, exact parser re-checked",
+                  " · AI ने समझा, सटीक जाँच ने दोबारा जाँचा",
+                )}
+              </small>
+            </>
+          )}
+          {intentNote.kind !== "understood" && intentNote.text}
+        </p>
+      )}
+      {state.draft && (
+        <IntentReview
+          quiet={quiet}
+          key={state.revision}
+          draft={state.draft}
+          profile={state.profile}
+          locale={state.locale}
+          feeText={state.feeText}
+          confirmed={Boolean(state.intent)}
+          onConfirm={confirm}
+          onRead={readIntent}
+        />
+      )}
+    </>
+  );
   return (
     <MotionConfig reducedMotion={accessible ? "always" : "user"}>
       <div
@@ -1106,7 +1203,7 @@ export function App({
               onDemo={() => loadDemo("correct")}
             />
           )}
-          {embedded && !accessible && (
+          {embedded && !accessible && !companion && (
             <ReviewGuide
               locale={state.locale}
               simple={simpleView}
@@ -1147,12 +1244,12 @@ export function App({
               onStop={stopAudio}
             />
           )}
-          {simpleView && (
+          {simpleView && !companion && (
             <p className="simple-audio-status" role="status">
               {audioStatus}
             </p>
           )}
-          {simpleView && state.error && (
+          {simpleView && !companion && state.error && (
             <div className="error-banner" role="alert">
               <strong>
                 {t("INCOMPLETE — DO NOT SIGN", "अधूरा — साइन न करें")}
@@ -1191,6 +1288,88 @@ export function App({
               </a>
             ))}
           </div>
+          {companion && (
+            <CompanionFlow
+              locale={state.locale}
+              quiet={quiet}
+              transcript={state.transcript}
+              listening={state.phase === "capturing_intent"}
+              hasDraft={!!state.draft}
+              confirmed={!!state.intent}
+              psbtName={state.psbtBytes ? state.psbtName : undefined}
+              verifying={state.phase === "verifying"}
+              hasResult={!!state.result}
+              error={state.error}
+              feeText={state.feeText}
+              intentReview={intentReviewNodes}
+              contextForm={
+                <PaymentContextForm
+                  value={state.context}
+                  locale={state.locale}
+                  onChange={(context) =>
+                    mutate({ type: "EDIT_CONTEXT", context })
+                  }
+                />
+              }
+              missingProof={missingProof}
+              review={transactionReview}
+              conversation={
+                state.result &&
+                active && (
+                  <ReviewConversation
+                    key={state.revision}
+                    result={state.result}
+                    context={state.intent?.context ?? state.context}
+                    locale={state.locale}
+                    consent={consent}
+                    interactionEpoch={interactionEpoch}
+                    quiet={quiet}
+                    onRead={read}
+                  />
+                )
+              }
+              audioStatus={audioStatus}
+              onTranscript={(transcript) =>
+                mutate({ type: "EDIT_TRANSCRIPT", transcript })
+              }
+              onSpeak={() => {
+                setConsent(true);
+                void listen(true);
+              }}
+              onStopSpeaking={() => {
+                if (recordingStop.current) {
+                  recordingStop.current.abort();
+                  recordingStop.current = undefined;
+                  return;
+                }
+                cancel();
+                dispatch({ type: "EDIT_TRANSCRIPT", transcript: state.transcript });
+              }}
+              onSubmit={() => void interpret()}
+              onPreset={preset}
+              onFee={(feeText) => mutate({ type: "SET_FEE", feeText })}
+              onFile={(file) => void loadFile(file)}
+              onDemo={loadDemo}
+              onVerify={() => void verify()}
+              onReset={reset}
+              onDetailed={() => {
+                cancel();
+                setInteractionEpoch((e) => e + 1);
+                dispatch({ type: "SUSPEND" });
+                setSimple(false);
+              }}
+              onQuiet={() => {
+                cancel();
+                setInteractionEpoch((e) => e + 1);
+                dispatch({ type: "SUSPEND" });
+                setQuiet(!quiet);
+                setConsent(false);
+                setAutoRead(false);
+              }}
+              onLocale={(locale) => mutate({ type: "SET_LOCALE", locale })}
+            />
+          )}
+          {!companion && (
           <div className="workspace-grid">
             <div className="input-column" hidden={simpleView && guidedStep === 3}>
               <IntentPanel
@@ -1270,7 +1449,7 @@ export function App({
                   <button
                     className="button"
                     type="button"
-                    onClick={listen}
+                    onClick={() => void listen()}
                     disabled={!consent || state.phase === "capturing_intent"}
                   >
                     <Mic size={17} aria-hidden="true" />
@@ -1383,42 +1562,7 @@ export function App({
                     <span>sats</span>
                   </div>
                 </div>
-                {understanding && (
-                  <p className="intent-note" role="status">
-                    <LoaderCircle className="spin" size={15} aria-hidden="true" />
-                    {t("Understanding what you said…", "आपकी बात समझी जा रही है…")}
-                  </p>
-                )}
-                {intentNote && !understanding && (
-                  <p className={"intent-note " + intentNote.kind} role="status">
-                    {intentNote.kind === "understood" && (
-                      <>
-                        <span>{t("We understood:", "हमने समझा:")}</span>{" "}
-                        <strong>{intentNote.text}</strong>
-                        <small>
-                          {t(
-                            " · AI understood, exact parser re-checked",
-                            " · AI ने समझा, सटीक जाँच ने दोबारा जाँचा",
-                          )}
-                        </small>
-                      </>
-                    )}
-                    {intentNote.kind !== "understood" && intentNote.text}
-                  </p>
-                )}
-                {state.draft && (
-                  <IntentReview
-                    quiet={quiet}
-                    key={state.revision}
-                    draft={state.draft}
-                    profile={state.profile}
-                    locale={state.locale}
-                    feeText={state.feeText}
-                    confirmed={Boolean(state.intent)}
-                    onConfirm={confirm}
-                    onRead={readIntent}
-                  />
-                )}
+                {intentReviewNodes}
                 {state.intent?.context?.purpose && (
                   <p className="confirmed-purpose">
                     {t("Your confirmed reason", "आपका पुष्टि किया कारण")}: “
@@ -1900,37 +2044,7 @@ export function App({
                 tabIndex={-1}
                 className="report-focus"
               >
-                <TransactionReview
-                  finalVerdict={finalVerdict}
-                  aiPanel={
-                    state.result &&
-                    finalVerdict && (
-                      <AiCheck
-                        locale={state.locale}
-                        codeVerdict={state.result.receipt.report.verdict}
-                        finalVerdict={finalVerdict}
-                        enabled={aiEnabled}
-                        status={currentAi?.status}
-                        review={
-                          currentAi?.data &&
-                          lockedAi && {
-                            ...currentAi.data,
-                            followUps: lockedAi.followUps,
-                          }
-                        }
-                        lockProblems={simpleView ? [] : lockedAi?.problems}
-                        onToggle={setAiEnabled}
-                      />
-                    )
-                  }
-                  simple={simpleView}
-                  quiet={quiet}
-                  result={state.result}
-                  localized={localized}
-                  locale={state.locale}
-                  onRead={() => localized && read(localized)}
-                  onStop={stopAudio}
-                />
+                {transactionReview}
                 {state.result && missingProof}
               </div>
               {state.result && active && (
@@ -2006,6 +2120,7 @@ export function App({
               </details>
             </aside>
           </div>
+          )}
         </main>
         <footer className="site-footer">
           <span className="footer-wordmark">
