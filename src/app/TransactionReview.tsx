@@ -7,6 +7,7 @@ import {
   Square,
   Fingerprint,
   Check,
+  Lock,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Locale, LocalizedReport, ReviewResult } from "../core/types";
@@ -98,6 +99,24 @@ export function TransactionReview({
             "वॉलेट भुगतान तैयार करता है। आवाज़ उसके वास्तविक विवरण को दोबारा जाँचता है।",
           )}
       </p>
+      {localized?.explanation && (
+        <p className="ai-explanation">
+          {localized.explanation}
+          <span className="lock-badge">
+            <Lock size={13} aria-hidden="true" />
+            {t("Numbers verified", "आँकड़े जाँचे गए")}
+          </span>
+        </p>
+      )}
+      {localized?.lock === "blocked" && (
+        <p className="lock-note">
+          <Lock size={13} aria-hidden="true" />
+          {t(
+            "The AI's explanation didn't match the verified numbers, so Awaaz is showing the checked summary instead.",
+            "AI का विवरण जाँचे गए आँकड़ों से मेल नहीं खाया, इसलिए आवाज़ जाँचा हुआ सार दिखा रहा है।",
+          )}
+        </p>
+      )}
       {localized ? (
         <motion.div
           key={result?.receipt.revision}

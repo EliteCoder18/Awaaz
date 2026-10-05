@@ -12,7 +12,9 @@ export function AiCheck({
   status,
   review,
   onToggle,
+  lockProblems = [],
 }: {
+  lockProblems?: string[];
   locale: Locale;
   codeVerdict: VerificationReport["verdict"];
   finalVerdict: FinalVerdict;
@@ -88,6 +90,21 @@ export function AiCheck({
             ))}
           </ul>
         </div>
+      )}
+      {lockProblems.length > 0 && (
+        <details className="lock-problems">
+          <summary>
+            {t(
+              "AI explanation blocked by the Number Lock",
+              "Number Lock ने AI विवरण रोका",
+            )}
+          </summary>
+          <ul>
+            {lockProblems.map((p, i) => (
+              <li key={i}>{p}</li>
+            ))}
+          </ul>
+        </details>
       )}
       <label className="ai-toggle">
         <input

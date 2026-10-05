@@ -137,6 +137,9 @@ export interface LocalizedReport {
   details: string[];
   speech: string;
   readback?: string[];
+  // AI explanation that passed the Number Lock, or why it was blocked.
+  explanation?: string;
+  lock?: "verified" | "blocked";
 }
 export interface WalletProfile {
   networkContext: "testnet";

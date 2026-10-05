@@ -26,6 +26,7 @@ import { parsePsbt } from "../core/psbtParser";
 import { missingPrevoutTxids } from "../core/prevoutEvidence";
 import { buildReviewRequest, requestAiReview } from "../adapters/aiReview";
 import type { AiReviewResponse } from "../core/aiContract";
+import { checkExplanation, lockFacts } from "../core/numberLock";
 import {
   applyFinalVerdict,
   combineVerdict,
@@ -177,6 +178,38 @@ export function App({
         currentAi?.status === "done" ? currentAi.data?.decision : undefined,
       )
     : undefined;
+  const lockDemo = new URLSearchParams(window.location.search).has("lockdemo");
+  // Number Lock: drop any AI text whose numbers, addresses or verdict words
+  // disagree with the verified facts; fall back to the code template.
+  const lockedAi = useMemo(() => {
+    const data = currentAi?.status === "done" ? currentAi.data : undefined;
+    if (!data || !state.result || !state.intent || !finalVerdict) return;
+    const facts = lockFacts(state.result, state.intent, state.profile);
+    const pass = (text: string) =>
+      checkExplanation(text, facts, finalVerdict).ok;
+    // ?lockdemo=1 plants a wrong number to show the lock catching it.
+    const text = lockDemo
+      ? data.explanation + t(" The fee is 999 sats.", " शुल्क 999 सैट्स है।")
+      : data.explanation;
+    const explanation = checkExplanation(text, facts, finalVerdict);
+    const reasons = data.reasons.map((r) => r.text).filter(pass);
+    return {
+      explanation: explanation.ok ? text : undefined,
+      lock: (explanation.ok ? "verified" : "blocked") as "verified" | "blocked",
+      problems: explanation.problems,
+      reasons:
+        reasons.length || data.decision === "go"
+          ? reasons
+          : [
+              t(
+                "The AI check found warning signs in this situation.",
+                "AI जाँच को इस स्थिति में चेतावनी के संकेत मिले।",
+              ),
+            ],
+      followUps: data.followUps.filter(pass),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentAi, state.result, state.intent, state.profile, finalVerdict]);
   const localized = useMemo(
     () =>
       codeLocalized && state.result && finalVerdict
@@ -184,11 +217,15 @@ export function App({
             codeLocalized,
             finalVerdict,
             state.result.receipt.report.verdict,
-            currentAi?.data?.reasons.map((r) => r.text) ?? [],
+            lockedAi?.reasons ?? [],
             state.locale,
+            lockedAi && {
+              explanation: lockedAi.explanation,
+              lock: lockedAi.lock,
+            },
           )
         : codeLocalized,
-    [codeLocalized, finalVerdict, currentAi, state.result, state.locale],
+    [codeLocalized, finalVerdict, lockedAi, state.result, state.locale],
   );
   const autoReadRef = useRef(false);
   useEffect(() => {
@@ -1711,7 +1748,14 @@ export function App({
                         finalVerdict={finalVerdict}
                         enabled={aiEnabled}
                         status={currentAi?.status}
-                        review={currentAi?.data}
+                        review={
+                          currentAi?.data &&
+                          lockedAi && {
+                            ...currentAi.data,
+                            followUps: lockedAi.followUps,
+                          }
+                        }
+                        lockProblems={simpleView ? [] : lockedAi?.problems}
                         onToggle={setAiEnabled}
                       />
                     )

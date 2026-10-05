@@ -62,6 +62,16 @@ const scales: Record<string, bigint> = {
   करोड़: 10000000n,
   million: 1000000n,
 };
+// Used by the Number Lock to refuse amounts written in words.
+export function isNumberWord(word: string): boolean {
+  return small[word] !== undefined || scales[word] !== undefined;
+}
+export const NUMBER_SCALE_WORDS = [
+  ...Object.keys(scales),
+  "half",
+  "आधा",
+  "aadha",
+];
 const satsUnits = new Set([
   "sat",
   "sats",

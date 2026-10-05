@@ -34,12 +34,24 @@ export function applyFinalVerdict(
   code: VerificationReport["verdict"],
   aiReasons: string[],
   locale: Locale,
+  ai?: { explanation?: string; lock: "verified" | "blocked" },
 ): LocalizedReport {
   const hi = locale === "hi-IN";
   const tightened =
     (code === "MATCH" && final !== "GO") ||
     (code === "INCOMPLETE" && final === "DO_NOT_SIGN");
-  if (!tightened) return localized;
+  const base: LocalizedReport = ai
+    ? {
+        ...localized,
+        explanation: ai.explanation,
+        lock: ai.lock,
+        // A verified AI explanation replaces the template narration.
+        speech: ai.explanation
+          ? [localized.title, ai.explanation].join(" ")
+          : localized.speech,
+      }
+    : localized;
+  if (!tightened) return base;
   const title =
     final === "PAUSE"
       ? hi
@@ -57,10 +69,12 @@ export function applyFinalVerdict(
         ? "यह भुगतान न करें। किसी भरोसेमंद व्यक्ति से बात करें।"
         : "Do not make this payment. Talk to someone you trust first.";
   return {
-    ...localized,
+    ...base,
     title,
     instruction,
     details: [...aiReasons, ...localized.details],
-    speech: [title, instruction, ...aiReasons, localized.speech].join(" "),
+    speech: ai?.explanation
+      ? [title, ai.explanation].join(" ")
+      : [title, instruction, ...aiReasons, localized.speech].join(" "),
   };
 }

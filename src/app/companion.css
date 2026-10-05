@@ -1029,3 +1029,30 @@ select {
   font-weight: 400;
   color: var(--muted);
 }
+.ai-explanation {
+  font-size: 1.05rem;
+  line-height: 1.55;
+  margin: 0.5rem 0 0.75rem;
+}
+.lock-badge,
+.lock-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.lock-badge {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--teal);
+  white-space: nowrap;
+}
+.lock-problems summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
